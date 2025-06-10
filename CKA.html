@@ -1,0 +1,2747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CKA Interactive Practice Tracker - Complete Standalone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .progress-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-card h3 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .progress-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .week-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .week-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .week-header:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6a4190);
+        }
+
+        .week-header h2 {
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .week-progress {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .expand-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .week-content {
+            padding: 30px;
+            display: none;
+        }
+
+        .week-content.expanded {
+            display: block;
+        }
+
+        .question-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            background: #fdfdfd;
+        }
+
+        .question-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-item.completed {
+            background: linear-gradient(135deg, #d5e7d5, #c8e6c9);
+            border-color: #27ae60;
+        }
+
+        .question-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+
+        .question-content {
+            flex: 1;
+        }
+
+        .question-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            color: #2c3e50;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+
+        .question-text code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e74c3c;
+            font-size: 0.9em;
+        }
+
+        .question-text ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .question-text li {
+            margin: 5px 0;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .difficulty-beginner {
+            background: #d5e7d5;
+            color: #27ae60;
+        }
+
+        .difficulty-intermediate {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .difficulty-advanced {
+            background: #f8d7da;
+            color: #e74c3c;
+        }
+
+        .difficulty-exam {
+            background: #d1ecf1;
+            color: #17a2b8;
+        }
+
+        .search-box {
+            width: 300px;
+            padding: 12px 16px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: #667eea;
+        }
+
+        .storage-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #155724;
+        }
+
+        .storage-success strong {
+            color: #0f5132;
+        }
+
+        .backup-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .backup-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .backup-btn:hover {
+            background: #138496;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .question-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .progress-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .backup-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CKA Interactive Practice Tracker</h1>
+            <p>285+ Questions | Persistent Progress Tracking | Master Kubernetes Administration</p>
+        </div>
+
+        <div class="storage-success">
+            <strong>✅ Standalone Version Active!</strong> Your progress is automatically saved to localStorage and persists across sessions. Perfect for hosting on your own website!
+            <div class="backup-controls">
+                <button class="backup-btn" onclick="exportProgress()">📥 Export Progress</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importProgress()">
+                <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Progress</button>
+                <button class="backup-btn" onclick="generateReport()">📊 Generate Report</button>
+                <button class="backup-btn" onclick="toggleStats()">📈 Toggle Statistics</button>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-grid">
+                <div class="progress-card">
+                    <h3>Total Progress</h3>
+                    <div class="number" id="totalProgress">0/285</div>
+                </div>
+                <div class="progress-card">
+                    <h3>Week 1 Complete</h3>
+                    <div class="number" id="week1Progress">0/55</div>
+                </div>
+                <div class="progress-card">
+                    <h3>Week 2 Complete</h3>
+                    <div class="number" id="week2Progress">0/60</div>
+                </div>
+                <div class="progress-card">
+                    <h3>Week 3 Complete</h3>
+                    <div class="number" id="week3Progress">0/70</div>
+                </div>
+                <div class="progress-card">
+                    <h3>Week 4 Complete</h3>
+                    <div class="number" id="week4Progress">0/80</div>
+                </div>
+                <div class="progress-card">
+                    <h3>Exam Scenarios</h3>
+                    <div class="number" id="examProgress">0/20</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="overallProgress" style="width: 0%;">0%</div>
+            </div>
+
+            <div class="controls">
+                <input type="text" class="search-box" id="searchBox" placeholder="Search questions...">
+                
+                <div class="filter-controls">
+                    <div class="filter-btn active" data-filter="all">All Questions</div>
+                    <div class="filter-btn" data-filter="completed">Completed</div>
+                    <div class="filter-btn" data-filter="pending">Pending</div>
+                    <div class="filter-btn" data-filter="beginner">Beginner</div>
+                    <div class="filter-btn" data-filter="intermediate">Intermediate</div>
+                    <div class="filter-btn" data-filter="advanced">Advanced</div>
+                    <div class="filter-btn" data-filter="exam">Exam</div>
+                </div>
+
+                <button class="btn btn-success" onclick="markAllInWeekComplete()">Mark Week Complete</button>
+                <button class="btn btn-info" onclick="expandAllWeeks()">Expand All</button>
+                <button class="btn btn-info" onclick="collapseAllWeeks()">Collapse All</button>
+                <button class="btn btn-danger" onclick="resetProgress()">Reset All</button>
+            </div>
+        </div>
+
+        <div id="statsSection" class="stats-section" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-number" id="beginnerCompleted">0</div>
+                <div class="stat-label">Beginner Questions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="intermediateCompleted">0</div>
+                <div class="stat-label">Intermediate Questions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="advancedCompleted">0</div>
+                <div class="stat-label">Advanced Questions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="examCompleted">0</div>
+                <div class="stat-label">Exam Scenarios</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="completionPercentage">0%</div>
+                <div class="stat-label">Completion Rate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="estimatedTime">0</div>
+                <div class="stat-label">Hours Remaining</div>
+            </div>
+        </div>
+
+        <div id="questionsContainer">
+            <!-- Questions will be dynamically generated here -->
+        </div>
+    </div>
+
+    <script>
+        // Complete questions dataset - ALL 285+ questions
+        const questionsData = {
+            week1: {
+                title: "Week 1: Kubernetes Foundations",
+                subtitle: "55 Questions - Master the basics and kubectl commands",
+                questions: [
+                    {
+                        id: "q1",
+                        number: "Q1",
+                        text: "Create a pod named <code>web-pod</code> using the <code>nginx:1.20</code> image in the <code>default</code> namespace.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q2",
+                        number: "Q2",
+                        text: "Create a pod with the following specifications:<ul><li>Name: <code>multi-container</code></li><li>Containers: <code>nginx:1.20</code> and <code>busybox:1.35</code></li><li>Busybox should run the command: <code>sleep 3600</code></li></ul>",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q3",
+                        number: "Q3",
+                        text: "Create a pod named <code>env-pod</code> with the <code>alpine:3.15</code> image that has an environment variable <code>ENV_VAR=production</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q4",
+                        number: "Q4",
+                        text: "List all pods in all namespaces with their IP addresses and node names.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q5",
+                        number: "Q5",
+                        text: "Create a deployment named <code>web-deployment</code> with 3 replicas using <code>nginx:1.20</code> image.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q6",
+                        number: "Q6",
+                        text: "Scale the <code>web-deployment</code> to 5 replicas.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q7",
+                        number: "Q7",
+                        text: "Update the <code>web-deployment</code> to use <code>nginx:1.21</code> image.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q8",
+                        number: "Q8",
+                        text: "Create a pod named <code>debug-pod</code> using <code>busybox:1.35</code> image that runs interactively and gets deleted when you exit.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q9",
+                        number: "Q9",
+                        text: "Get the YAML definition of the <code>web-deployment</code> and save it to <code>web-deployment.yaml</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q10",
+                        number: "Q10",
+                        text: "Create a namespace named <code>development</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q11",
+                        number: "Q11",
+                        text: "Create a pod named <code>ns-pod</code> in the <code>development</code> namespace using <code>alpine:3.15</code> image.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q12",
+                        number: "Q12",
+                        text: "Delete the pod <code>web-pod</code> forcefully without waiting for the grace period.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q13",
+                        number: "Q13",
+                        text: "Create a deployment using an imperative command and output the YAML to a file without creating the resource.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q14",
+                        number: "Q14",
+                        text: "List all resources in the <code>development</code> namespace.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q15",
+                        number: "Q15",
+                        text: "Create a pod with resource limits: CPU: 200m, Memory: 256Mi and requests: CPU: 100m, Memory: 128Mi.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q16",
+                        number: "Q16",
+                        text: "Create a pod that runs the <code>nginx:1.20</code> image and executes the command <code>echo \"Hello World\"</code> before starting nginx.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q17",
+                        number: "Q17",
+                        text: "Create a deployment with the following specifications:<ul><li>Name: <code>complex-app</code></li><li>Image: <code>nginx:1.20</code></li><li>Replicas: 4</li><li>Labels: <code>app=web</code>, <code>env=prod</code></li><li>Add annotation: <code>description=Production web server</code></li></ul>",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q18",
+                        number: "Q18",
+                        text: "Create a pod that mounts an emptyDir volume at <code>/data</code> and runs two containers that share this volume.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q19",
+                        number: "Q19",
+                        text: "Create a ReplicaSet named <code>rs-nginx</code> with 3 replicas using <code>nginx:1.20</code> image with selector <code>app=nginx</code>.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q20",
+                        number: "Q20",
+                        text: "Create a DaemonSet named <code>monitoring-agent</code> using <code>busybox:1.35</code> image that runs on all nodes.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q21",
+                        number: "Q21",
+                        text: "Create a pod with init container that creates a file <code>/shared/data.txt</code> before the main container starts.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q22",
+                        number: "Q22",
+                        text: "Update a deployment using rolling update strategy with maxSurge=1 and maxUnavailable=0.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q23",
+                        number: "Q23",
+                        text: "Create a pod with a sidecar container where main container is nginx and sidecar tails the nginx logs.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q24",
+                        number: "Q24",
+                        text: "Create a pod that runs only on nodes with label <code>environment=production</code>.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q25",
+                        number: "Q25",
+                        text: "Create a Job named <code>batch-job</code> that runs the command <code>echo \"Job completed\"</code> and completes successfully.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q26",
+                        number: "Q26",
+                        text: "Create a ConfigMap named <code>app-config</code> with key-value pairs: <code>database_host=mysql.example.com</code> and <code>log_level=debug</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q27",
+                        number: "Q27",
+                        text: "Create a pod that uses the <code>app-config</code> ConfigMap as environment variables.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q28",
+                        number: "Q28",
+                        text: "Create a Secret named <code>db-secret</code> with username=admin and password=secret123.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q29",
+                        number: "Q29",
+                        text: "Create a pod that mounts the <code>db-secret</code> as a volume at <code>/etc/secrets</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q30",
+                        number: "Q30",
+                        text: "Create a ConfigMap from a file containing application properties.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q31",
+                        number: "Q31",
+                        text: "Update an existing ConfigMap and verify the changes are reflected in pods using it.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q32",
+                        number: "Q32",
+                        text: "Create a Job that runs 3 times in parallel and each job prints current date and hostname.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q33",
+                        number: "Q33",
+                        text: "Create a CronJob that runs every minute and executes <code>date</code> command.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q34",
+                        number: "Q34",
+                        text: "Create a pod that uses both ConfigMap as environment variables and Secret as mounted volume.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q35",
+                        number: "Q35",
+                        text: "Create a Job with backoffLimit=3 and activeDeadlineSeconds=60.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q36",
+                        number: "Q36",
+                        text: "Create a ConfigMap using literal values and from a directory containing multiple files.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q37",
+                        number: "Q37",
+                        text: "Create a Secret of type TLS with a certificate and key.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q38",
+                        number: "Q38",
+                        text: "Modify a CronJob to suspend its execution.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q39",
+                        number: "Q39",
+                        text: "Create a pod with both resource requests/limits and environment variables from ConfigMap.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q40",
+                        number: "Q40",
+                        text: "Delete all completed Jobs in the current namespace.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q41",
+                        number: "Q41",
+                        text: "Use <code>kubectl</code> to get pods sorted by creation time.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q42",
+                        number: "Q42",
+                        text: "Get all pods that have the label <code>app=nginx</code> across all namespaces.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q43",
+                        number: "Q43",
+                        text: "Use <code>kubectl</code> to watch for changes in deployments in real-time.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q44",
+                        number: "Q44",
+                        text: "Extract the image name of all containers in a specific pod.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q45",
+                        number: "Q45",
+                        text: "Use <code>kubectl</code> to get the events sorted by timestamp for troubleshooting.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q46",
+                        number: "Q46",
+                        text: "Create a pod and immediately get its logs, following them in real-time.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q47",
+                        number: "Q47",
+                        text: "Use <code>kubectl</code> to perform a rolling restart of a deployment.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q48",
+                        number: "Q48",
+                        text: "Get resource usage (CPU/Memory) for all pods in a namespace.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q49",
+                        number: "Q49",
+                        text: "Use <code>kubectl</code> to copy files from a pod to local machine and vice versa.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q50",
+                        number: "Q50",
+                        text: "Execute a command in a running pod and capture the output.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q51",
+                        number: "Q51",
+                        text: "Use <code>kubectl</code> to patch a deployment to add a new environment variable.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q52",
+                        number: "Q52",
+                        text: "Get the YAML definition of all services in a specific format (wide output).",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q53",
+                        number: "Q53",
+                        text: "Use <code>kubectl</code> to drain a node for maintenance.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q54",
+                        number: "Q54",
+                        text: "Apply a configuration file and record the command in annotations.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q55",
+                        number: "Q55",
+                        text: "Use <code>kubectl</code> to show resource usage and limits for a specific pod.",
+                        difficulty: "intermediate"
+                    }
+                ]
+            },
+            week2: {
+                title: "Week 2: Networking & Services",
+                subtitle: "60 Questions - Master networking, services, and security",
+                questions: [
+                    {
+                        id: "q56",
+                        number: "Q56",
+                        text: "Create a ClusterIP service named <code>backend-service</code> that exposes port 80 and targets pods with label <code>app=backend</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q57",
+                        number: "Q57",
+                        text: "Create a NodePort service that exposes an nginx deployment on port 30080.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q58",
+                        number: "Q58",
+                        text: "Create a LoadBalancer service and test external connectivity.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q59",
+                        number: "Q59",
+                        text: "Create a headless service for StatefulSet communication.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q60",
+                        number: "Q60",
+                        text: "Test DNS resolution between pods in different namespaces.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q61",
+                        number: "Q61",
+                        text: "Create an ExternalName service that points to <code>google.com</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q62",
+                        number: "Q62",
+                        text: "Create a service that selects pods with multiple labels: <code>app=web</code> AND <code>version=v1</code>.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q63",
+                        number: "Q63",
+                        text: "Expose a deployment using <code>kubectl expose</code> command with specific port mapping.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q64",
+                        number: "Q64",
+                        text: "Create a service with multiple ports (HTTP:80, HTTPS:443).",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q65",
+                        number: "Q65",
+                        text: "Test service discovery using nslookup from inside a pod.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q66",
+                        number: "Q66",
+                        text: "Create endpoints manually for a service without selector.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q67",
+                        number: "Q67",
+                        text: "Modify service type from ClusterIP to NodePort.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q68",
+                        number: "Q68",
+                        text: "Create a service that only exposes pods on specific nodes using nodeSelector.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q69",
+                        number: "Q69",
+                        text: "Test pod-to-pod communication using service DNS names.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q70",
+                        number: "Q70",
+                        text: "Create a service with session affinity enabled.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q71",
+                        number: "Q71",
+                        text: "Debug a service that's not routing traffic correctly to pods.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q72",
+                        number: "Q72",
+                        text: "Create a service that exposes pods on a specific protocol (UDP).",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q73",
+                        number: "Q73",
+                        text: "Use port-forward to access a pod directly without creating a service.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q74",
+                        number: "Q74",
+                        text: "Create EndpointSlices manually and verify service connectivity.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q75",
+                        number: "Q75",
+                        text: "Troubleshoot DNS resolution issues in a pod.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q76",
+                        number: "Q76",
+                        text: "Create a NetworkPolicy that denies all ingress traffic to pods with label <code>app=database</code>.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q77",
+                        number: "Q77",
+                        text: "Create a NetworkPolicy that allows traffic only from pods with label <code>app=frontend</code> to <code>app=backend</code> on port 8080.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q78",
+                        number: "Q78",
+                        text: "Create a NetworkPolicy that allows egress traffic only to pods in the same namespace.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q79",
+                        number: "Q79",
+                        text: "Create a ServiceAccount named <code>app-sa</code> in namespace <code>production</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q80",
+                        number: "Q80",
+                        text: "Create a Role that allows reading pods and services in a specific namespace.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q81",
+                        number: "Q81",
+                        text: "Create a ClusterRole that allows listing nodes across the cluster.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q82",
+                        number: "Q82",
+                        text: "Bind a ServiceAccount to a Role using RoleBinding.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q83",
+                        number: "Q83",
+                        text: "Create a ClusterRoleBinding that gives cluster-admin access to a user.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q84",
+                        number: "Q84",
+                        text: "Test RBAC permissions using <code>kubectl auth can-i</code> command.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q85",
+                        number: "Q85",
+                        text: "Create a NetworkPolicy that allows traffic from a specific IP range.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q86",
+                        number: "Q86",
+                        text: "Create a pod that uses a custom ServiceAccount.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q87",
+                        number: "Q87",
+                        text: "Create a Role that allows creating deployments but not deleting them.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q88",
+                        number: "Q88",
+                        text: "Create a NetworkPolicy that denies all traffic except to kube-system namespace.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q89",
+                        number: "Q89",
+                        text: "Debug RBAC issues when a ServiceAccount can't perform required actions.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q90",
+                        number: "Q90",
+                        text: "Create a NetworkPolicy that allows only specific ports and protocols.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q91",
+                        number: "Q91",
+                        text: "Create a ServiceAccount with image pull secrets attached.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q92",
+                        number: "Q92",
+                        text: "Create a RoleBinding that binds multiple users to the same role.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q93",
+                        number: "Q93",
+                        text: "Create a NetworkPolicy with both ingress and egress rules.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q94",
+                        number: "Q94",
+                        text: "Verify effective RBAC permissions for a ServiceAccount.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q95",
+                        number: "Q95",
+                        text: "Create a NetworkPolicy that uses namespaceSelector for cross-namespace communication.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q96",
+                        number: "Q96",
+                        text: "Install an ingress controller (nginx) in your cluster.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q97",
+                        number: "Q97",
+                        text: "Create an Ingress resource that routes traffic based on hostname.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q98",
+                        number: "Q98",
+                        text: "Create an Ingress with path-based routing (/api → api-service, /web → web-service).",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q99",
+                        number: "Q99",
+                        text: "Configure TLS/SSL termination in an Ingress resource.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q100",
+                        number: "Q100",
+                        text: "Create an Ingress with custom annotations for specific behavior.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q101",
+                        number: "Q101",
+                        text: "Set up Gateway API with HTTPRoute for advanced routing.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q102",
+                        number: "Q102",
+                        text: "Create a Gateway that handles both HTTP and HTTPS traffic.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q103",
+                        number: "Q103",
+                        text: "Configure weighted traffic splitting using Gateway API.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q104",
+                        number: "Q104",
+                        text: "Create an Ingress with basic authentication.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q105",
+                        number: "Q105",
+                        text: "Test Ingress connectivity and troubleshoot routing issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q106",
+                        number: "Q106",
+                        text: "Create multiple Ingress resources for different services.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q107",
+                        number: "Q107",
+                        text: "Configure Ingress with custom error pages.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q108",
+                        number: "Q108",
+                        text: "Set up rate limiting using Ingress annotations.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q109",
+                        number: "Q109",
+                        text: "Create an Ingress that redirects HTTP to HTTPS.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q110",
+                        number: "Q110",
+                        text: "Use Gateway API for blue-green deployments.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q111",
+                        number: "Q111",
+                        text: "Configure host-based routing with wildcard domains.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q112",
+                        number: "Q112",
+                        text: "Create an Ingress with IP whitelisting.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q113",
+                        number: "Q113",
+                        text: "Set up sticky sessions using Ingress configuration.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q114",
+                        number: "Q114",
+                        text: "Configure custom timeout values in Ingress.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q115",
+                        number: "Q115",
+                        text: "Test and debug Gateway API configurations.",
+                        difficulty: "advanced"
+                    }
+                ]
+            },
+            week3: {
+                title: "Week 3: Storage & Cluster Management",
+                subtitle: "70 Questions - Master storage, clusters, and modern tools",
+                questions: [
+                    {
+                        id: "q116",
+                        number: "Q116",
+                        text: "Create a PersistentVolume with 1Gi capacity using hostPath.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q117",
+                        number: "Q117",
+                        text: "Create a PersistentVolumeClaim that requests 500Mi of storage.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q118",
+                        number: "Q118",
+                        text: "Create a pod that uses the PVC and mounts it at <code>/data</code>.",
+                        difficulty: "beginner"
+                    },
+                    {
+                        id: "q119",
+                        number: "Q119",
+                        text: "Create a StorageClass for dynamic provisioning with different reclaim policies.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q120",
+                        number: "Q120",
+                        text: "Create a StatefulSet with volumeClaimTemplate for persistent storage.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q121",
+                        number: "Q121",
+                        text: "Configure a PV with ReadWriteMany access mode.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q122",
+                        number: "Q122",
+                        text: "Create a pod with multiple volumes: emptyDir, configMap, and secret.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q123",
+                        number: "Q123",
+                        text: "Set up dynamic volume provisioning using a cloud provider's storage class.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q124",
+                        number: "Q124",
+                        text: "Create a PV with specific node affinity requirements.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q125",
+                        number: "Q125",
+                        text: "Test volume expansion by resizing a PVC.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q126",
+                        number: "Q126",
+                        text: "Create a backup of a persistent volume's data.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q127",
+                        number: "Q127",
+                        text: "Configure a PV with different reclaim policies (Retain, Delete, Recycle).",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q128",
+                        number: "Q128",
+                        text: "Create a pod that uses both ephemeral and persistent storage.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q129",
+                        number: "Q129",
+                        text: "Set up volume snapshots and restore from snapshots.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q130",
+                        number: "Q130",
+                        text: "Configure storage quotas for a namespace.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q131",
+                        number: "Q131",
+                        text: "Create a StatefulSet with ordered pod deployment and persistent storage.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q132",
+                        number: "Q132",
+                        text: "Mount a single PV in multiple pods with appropriate access modes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q133",
+                        number: "Q133",
+                        text: "Configure local persistent volumes for high-performance workloads.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q134",
+                        number: "Q134",
+                        text: "Create a pod with subPath volume mounts.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q135",
+                        number: "Q135",
+                        text: "Troubleshoot PVC stuck in Pending state.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q136",
+                        number: "Q136",
+                        text: "Configure projected volumes combining multiple sources.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q137",
+                        number: "Q137",
+                        text: "Set up CSI drivers for advanced storage features.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q138",
+                        number: "Q138",
+                        text: "Create volume mounts with specific file permissions.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q139",
+                        number: "Q139",
+                        text: "Configure automatic volume provisioning with default storage class.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q140",
+                        number: "Q140",
+                        text: "Test data persistence across pod recreations.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q141",
+                        number: "Q141",
+                        text: "Initialize a Kubernetes cluster using kubeadm.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q142",
+                        number: "Q142",
+                        text: "Join worker nodes to an existing cluster.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q143",
+                        number: "Q143",
+                        text: "Generate and apply new certificates for cluster components.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q144",
+                        number: "Q144",
+                        text: "Perform etcd backup using etcdctl.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q145",
+                        number: "Q145",
+                        text: "Restore etcd from a backup snapshot.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q146",
+                        number: "Q146",
+                        text: "Upgrade a cluster from one Kubernetes version to another.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q147",
+                        number: "Q147",
+                        text: "Configure kubelet with custom parameters.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q148",
+                        number: "Q148",
+                        text: "Set up high availability control plane with multiple master nodes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q149",
+                        number: "Q149",
+                        text: "Configure cluster networking using a CNI plugin.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q150",
+                        number: "Q150",
+                        text: "Manage cluster certificates and handle certificate rotation.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q151",
+                        number: "Q151",
+                        text: "Configure audit logging for the cluster.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q152",
+                        number: "Q152",
+                        text: "Set up cluster monitoring with resource metrics.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q153",
+                        number: "Q153",
+                        text: "Configure API server with custom admission controllers.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q154",
+                        number: "Q154",
+                        text: "Manage cluster-wide resource quotas and limits.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q155",
+                        number: "Q155",
+                        text: "Configure node registration with custom labels and taints.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q156",
+                        number: "Q156",
+                        text: "Set up cluster autoscaling for node management.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q157",
+                        number: "Q157",
+                        text: "Configure custom scheduler for specific workload requirements.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q158",
+                        number: "Q158",
+                        text: "Manage cluster upgrade rollback scenarios.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q159",
+                        number: "Q159",
+                        text: "Configure cluster networking policies at the node level.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q160",
+                        number: "Q160",
+                        text: "Set up multi-cluster communication and management.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q161",
+                        number: "Q161",
+                        text: "Configure cluster backup and disaster recovery procedures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q162",
+                        number: "Q162",
+                        text: "Manage cluster configuration with GitOps principles.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q163",
+                        number: "Q163",
+                        text: "Set up cluster security scanning and compliance.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q164",
+                        number: "Q164",
+                        text: "Configure cluster resource allocation and node affinity.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q165",
+                        number: "Q165",
+                        text: "Implement cluster-wide security policies and pod security standards.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q166",
+                        number: "Q166",
+                        text: "Install and configure Helm in your cluster.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q167",
+                        number: "Q167",
+                        text: "Deploy an application using a Helm chart from a public repository.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q168",
+                        number: "Q168",
+                        text: "Create a custom Helm chart for your application.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q169",
+                        number: "Q169",
+                        text: "Use Helm to upgrade and rollback application deployments.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q170",
+                        number: "Q170",
+                        text: "Configure Helm with custom values files for different environments.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q171",
+                        number: "Q171",
+                        text: "Use Kustomize to manage configuration for multiple environments.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q172",
+                        number: "Q172",
+                        text: "Create base and overlay configurations with Kustomize.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q173",
+                        number: "Q173",
+                        text: "Apply patches using Kustomize for environment-specific changes.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q174",
+                        number: "Q174",
+                        text: "Create a Custom Resource Definition (CRD) for a new resource type.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q175",
+                        number: "Q175",
+                        text: "Deploy a simple operator that manages custom resources.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q176",
+                        number: "Q176",
+                        text: "Configure and use community operators from OperatorHub.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q177",
+                        number: "Q177",
+                        text: "Create custom resources and manage them with kubectl.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q178",
+                        number: "Q178",
+                        text: "Use Helm hooks for pre/post-installation tasks.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q179",
+                        number: "Q179",
+                        text: "Configure Kustomize with secret and configmap generators.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q180",
+                        number: "Q180",
+                        text: "Deploy operators using Operator Lifecycle Manager (OLM).",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q181",
+                        number: "Q181",
+                        text: "Create CRDs with validation schemas and structural constraints.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q182",
+                        number: "Q182",
+                        text: "Use Helm templates with conditional logic and loops.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q183",
+                        number: "Q183",
+                        text: "Configure Kustomize with remote bases and resource references.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q184",
+                        number: "Q184",
+                        text: "Implement custom controllers for CRDs using existing frameworks.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q185",
+                        number: "Q185",
+                        text: "Manage Helm repositories and chart dependencies.",
+                        difficulty: "intermediate"
+                    }
+                ]
+            },
+            week4: {
+                title: "Week 4: Troubleshooting & Exam Prep",
+                subtitle: "80 Questions - Master troubleshooting and exam scenarios",
+                questions: [
+                    {
+                        id: "q186",
+                        number: "Q186",
+                        text: "Debug a pod that's stuck in Pending state.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q187",
+                        number: "Q187",
+                        text: "Troubleshoot a pod that's in CrashLoopBackOff status.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q188",
+                        number: "Q188",
+                        text: "Investigate high CPU usage in a specific pod.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q189",
+                        number: "Q189",
+                        text: "Debug service connectivity issues between pods.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q190",
+                        number: "Q190",
+                        text: "Troubleshoot DNS resolution failures in pods.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q191",
+                        number: "Q191",
+                        text: "Investigate node NotReady status and fix the issue.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q192",
+                        number: "Q192",
+                        text: "Debug ImagePullBackOff errors in pod deployment.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q193",
+                        number: "Q193",
+                        text: "Troubleshoot persistent volume mounting issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q194",
+                        number: "Q194",
+                        text: "Investigate network policy blocking pod communication.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q195",
+                        number: "Q195",
+                        text: "Debug RBAC permission denied errors.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q196",
+                        number: "Q196",
+                        text: "Troubleshoot ingress controller not routing traffic correctly.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q197",
+                        number: "Q197",
+                        text: "Investigate cluster component failures (apiserver, scheduler, controller-manager).",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q198",
+                        number: "Q198",
+                        text: "Debug etcd connectivity and data consistency issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q199",
+                        number: "Q199",
+                        text: "Troubleshoot kubelet issues on worker nodes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q200",
+                        number: "Q200",
+                        text: "Investigate pod scheduling failures due to resource constraints.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q201",
+                        number: "Q201",
+                        text: "Debug ConfigMap or Secret not being mounted correctly.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q202",
+                        number: "Q202",
+                        text: "Troubleshoot container startup failures and initialization issues.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q203",
+                        number: "Q203",
+                        text: "Investigate load balancer not distributing traffic evenly.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q204",
+                        number: "Q204",
+                        text: "Debug persistent volume claim stuck in pending state.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q205",
+                        number: "Q205",
+                        text: "Troubleshoot deployment rollout stuck in progress.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q206",
+                        number: "Q206",
+                        text: "Investigate pod eviction due to resource pressure.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q207",
+                        number: "Q207",
+                        text: "Debug ingress TLS certificate issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q208",
+                        number: "Q208",
+                        text: "Troubleshoot job completion failures and hanging jobs.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q209",
+                        number: "Q209",
+                        text: "Investigate cluster networking issues between nodes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q210",
+                        number: "Q210",
+                        text: "Debug resource quota limitations preventing pod creation.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q211",
+                        number: "Q211",
+                        text: "Troubleshoot StatefulSet pod startup ordering issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q212",
+                        number: "Q212",
+                        text: "Investigate storage class provisioning failures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q213",
+                        number: "Q213",
+                        text: "Debug multi-container pod communication issues.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q214",
+                        number: "Q214",
+                        text: "Troubleshoot cluster autoscaling not working correctly.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q215",
+                        number: "Q215",
+                        text: "Investigate admission controller rejecting resource creation.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q216",
+                        number: "Q216",
+                        text: "Debug custom resource validation failures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q217",
+                        number: "Q217",
+                        text: "Troubleshoot operator reconciliation loops and errors.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q218",
+                        number: "Q218",
+                        text: "Investigate cluster upgrade failures and rollback procedures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q219",
+                        number: "Q219",
+                        text: "Debug cross-namespace service discovery issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q220",
+                        number: "Q220",
+                        text: "Troubleshoot pod security policy violations.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q221",
+                        number: "Q221",
+                        text: "Investigate helm deployment failures and rollback issues.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q222",
+                        number: "Q222",
+                        text: "Debug kustomize overlay application errors.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q223",
+                        number: "Q223",
+                        text: "Troubleshoot cluster certificate expiration and renewal.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q224",
+                        number: "Q224",
+                        text: "Investigate log aggregation and monitoring system issues.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q225",
+                        number: "Q225",
+                        text: "Debug cluster backup and restore procedure failures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q226",
+                        number: "Q226",
+                        text: "In 2 minutes: Create a deployment, scale it, update the image, and rollback.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q227",
+                        number: "Q227",
+                        text: "In 3 minutes: Create a pod with multiple containers, configmap, secret, and persistent volume.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q228",
+                        number: "Q228",
+                        text: "In 2 minutes: Debug and fix a service that's not reaching its target pods.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q229",
+                        number: "Q229",
+                        text: "In 4 minutes: Set up ingress with TLS for a multi-service application.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q230",
+                        number: "Q230",
+                        text: "In 3 minutes: Create RBAC setup for a service account with specific permissions.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q231",
+                        number: "Q231",
+                        text: "In 2 minutes: Troubleshoot and fix a failing CronJob.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q232",
+                        number: "Q232",
+                        text: "In 5 minutes: Perform etcd backup and restore procedure.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q233",
+                        number: "Q233",
+                        text: "In 3 minutes: Create and apply a network policy for pod isolation.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q234",
+                        number: "Q234",
+                        text: "In 2 minutes: Scale a StatefulSet and verify persistence.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q235",
+                        number: "Q235",
+                        text: "In 4 minutes: Deploy an application using Helm with custom values.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q236",
+                        number: "Q236",
+                        text: "In 3 minutes: Create a custom storage class and test dynamic provisioning.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q237",
+                        number: "Q237",
+                        text: "In 2 minutes: Fix a node that's in NotReady state.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q238",
+                        number: "Q238",
+                        text: "In 4 minutes: Set up monitoring for a deployment with resource limits.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q239",
+                        number: "Q239",
+                        text: "In 3 minutes: Create and test a job with parallelism and completion requirements.",
+                        difficulty: "intermediate"
+                    },
+                    {
+                        id: "q240",
+                        number: "Q240",
+                        text: "In 5 minutes: Troubleshoot a complete application stack failure (multiple components).",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q241",
+                        number: "Q241",
+                        text: "Analyze cluster resource utilization and recommend optimizations.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q242",
+                        number: "Q242",
+                        text: "Create a comprehensive monitoring setup with alerting rules.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q243",
+                        number: "Q243",
+                        text: "Implement automated backup and recovery procedures for stateful applications.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q244",
+                        number: "Q244",
+                        text: "Design and implement a multi-tier application with proper security boundaries.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q245",
+                        number: "Q245",
+                        text: "Create a disaster recovery plan and test failover procedures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q246",
+                        number: "Q246",
+                        text: "Implement cluster-wide logging and audit trail configuration.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q247",
+                        number: "Q247",
+                        text: "Design and deploy a CI/CD pipeline integrated with Kubernetes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q248",
+                        number: "Q248",
+                        text: "Create a security-hardened cluster configuration with compliance scanning.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q249",
+                        number: "Q249",
+                        text: "Implement canary deployment strategy with automated rollback triggers.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q250",
+                        number: "Q250",
+                        text: "Design a multi-region Kubernetes deployment with data replication.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q251",
+                        number: "Q251",
+                        text: "Create comprehensive performance testing and benchmarking procedures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q252",
+                        number: "Q252",
+                        text: "Implement service mesh configuration with traffic management policies.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q253",
+                        number: "Q253",
+                        text: "Design and deploy edge computing infrastructure with Kubernetes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q254",
+                        number: "Q254",
+                        text: "Create automated compliance and governance frameworks.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q255",
+                        number: "Q255",
+                        text: "Implement cost optimization strategies and resource rightsizing.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q256",
+                        number: "Q256",
+                        text: "Design a zero-downtime application update strategy.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q257",
+                        number: "Q257",
+                        text: "Create comprehensive incident response and recovery procedures.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q258",
+                        number: "Q258",
+                        text: "Implement advanced networking features with custom CNI configurations.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q259",
+                        number: "Q259",
+                        text: "Design and deploy machine learning workflows on Kubernetes.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q260",
+                        number: "Q260",
+                        text: "Create a comprehensive capacity planning and forecasting system.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q261",
+                        number: "Q261",
+                        text: "Implement advanced security scanning and vulnerability management.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q262",
+                        number: "Q262",
+                        text: "Design a hybrid cloud deployment strategy with workload migration.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q263",
+                        number: "Q263",
+                        text: "Create automated testing frameworks for Kubernetes configurations.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q264",
+                        number: "Q264",
+                        text: "Implement chaos engineering practices for resilience testing.",
+                        difficulty: "advanced"
+                    },
+                    {
+                        id: "q265",
+                        number: "Q265",
+                        text: "Design and deploy event-driven architectures with Kubernetes.",
+                        difficulty: "advanced"
+                    }
+                ]
+            },
+            exam: {
+                title: "Exam Simulation Scenarios",
+                subtitle: "20 Complex Scenarios - Full exam practice",
+                questions: [
+                    {
+                        id: "exam1",
+                        number: "Scenario 1",
+                        text: "<strong>EXAM SCENARIO:</strong> Create a deployment named <code>web-app</code> in namespace <code>production</code> with 3 replicas using image <code>nginx:1.21</code>. Expose it via ClusterIP service on port 80. Create a NetworkPolicy that allows traffic only from pods labeled <code>role=frontend</code>.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam2",
+                        number: "Scenario 2",
+                        text: "<strong>EXAM SCENARIO:</strong> Set up a StatefulSet named <code>database</code> with 3 replicas using <code>postgres:13</code> image. Configure persistent storage using a storage class. Create a headless service for the StatefulSet.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam3",
+                        number: "Scenario 3",
+                        text: "<strong>EXAM SCENARIO:</strong> Create a pod named <code>troubleshoot-pod</code> that's failing to start. Debug and fix the following issues: wrong image name, missing ConfigMap, insufficient resources.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam4",
+                        number: "Scenario 4",
+                        text: "<strong>EXAM SCENARIO:</strong> Upgrade a cluster from Kubernetes 1.28 to 1.29. Perform proper drain/uncordon procedures and verify all components are healthy.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam5",
+                        number: "Scenario 5",
+                        text: "<strong>EXAM SCENARIO:</strong> Create a CronJob that backs up etcd every 6 hours. Configure proper RBAC permissions and verify the backup procedure works.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam6",
+                        number: "Scenario 6",
+                        text: "<strong>EXAM SCENARIO:</strong> Implement a blue-green deployment strategy using deployments and services. Test traffic switching between versions.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam7",
+                        number: "Scenario 7",
+                        text: "<strong>EXAM SCENARIO:</strong> Configure cluster autoscaling to scale nodes between 1-10 based on resource utilization. Test scaling behavior with varying workloads.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam8",
+                        number: "Scenario 8",
+                        text: "<strong>EXAM SCENARIO:</strong> Set up monitoring for cluster components and applications. Configure alerts for high resource usage and component failures.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam9",
+                        number: "Scenario 9",
+                        text: "<strong>EXAM SCENARIO:</strong> Create a custom admission controller that validates pod security contexts and rejects non-compliant pods.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam10",
+                        number: "Scenario 10",
+                        text: "<strong>EXAM SCENARIO:</strong> Implement disaster recovery procedures including etcd backup, cluster state backup, and recovery testing.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam11",
+                        number: "Scenario 11",
+                        text: "<strong>EXAM SCENARIO:</strong> Configure multi-tenancy with namespaces, RBAC, network policies, and resource quotas for different teams.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam12",
+                        number: "Scenario 12",
+                        text: "<strong>EXAM SCENARIO:</strong> Deploy a complex application using Helm with custom values, dependency management, and environment-specific configurations.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam13",
+                        number: "Scenario 13",
+                        text: "<strong>EXAM SCENARIO:</strong> Troubleshoot a production incident where pods can't communicate with external services. Investigate DNS, network policies, and ingress configurations.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam14",
+                        number: "Scenario 14",
+                        text: "<strong>EXAM SCENARIO:</strong> Implement gitops workflow using Kustomize for managing configurations across development, staging, and production environments.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam15",
+                        number: "Scenario 15",
+                        text: "<strong>EXAM SCENARIO:</strong> Create and deploy a custom operator that manages application lifecycle including installation, upgrades, and backup procedures.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam16",
+                        number: "Scenario 16",
+                        text: "<strong>EXAM SCENARIO:</strong> Configure cluster security including pod security standards, admission controllers, and security scanning integration.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam17",
+                        number: "Scenario 17",
+                        text: "<strong>EXAM SCENARIO:</strong> Implement canary deployment strategy with traffic splitting and automated rollback based on metrics.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam18",
+                        number: "Scenario 18",
+                        text: "<strong>EXAM SCENARIO:</strong> Set up cross-cluster service mesh communication with proper security and traffic management policies.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam19",
+                        number: "Scenario 19",
+                        text: "<strong>EXAM SCENARIO:</strong> Configure cluster logging aggregation with log rotation, filtering, and external system integration.",
+                        difficulty: "exam"
+                    },
+                    {
+                        id: "exam20",
+                        number: "Scenario 20",
+                        text: "<strong>EXAM SCENARIO:</strong> Implement capacity planning procedures including resource monitoring, forecasting, and automated scaling policies.",
+                        difficulty: "exam"
+                    }
+                ]
+            }
+        };
+
+        // Global variables
+        let completedQuestions = new Set();
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Load progress from localStorage
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('ckaProgress');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    completedQuestions = new Set(parsed);
+                }
+            } catch (e) {
+                console.log('No saved progress found or error loading:', e);
+            }
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            try {
+                localStorage.setItem('ckaProgress', JSON.stringify([...completedQuestions]));
+                localStorage.setItem('ckaLastSaved', new Date().toISOString());
+            } catch (e) {
+                console.error('Error saving progress:', e);
+            }
+        }
+
+        // Export progress as JSON file
+        function exportProgress() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                completedQuestions: [...completedQuestions],
+                totalQuestions: Object.values(questionsData).reduce((sum, week) => sum + week.questions.length, 0),
+                statistics: calculateDetailedStats()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cka-progress-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Progress exported successfully!');
+        }
+
+        // Import progress from JSON file
+        function importProgress() {
+            const file = document.getElementById('importFile').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.completedQuestions && Array.isArray(data.completedQuestions)) {
+                        if (confirm(`Import progress from ${new Date(data.exportDate).toLocaleDateString()}?\nThis will replace your current progress.`)) {
+                            completedQuestions = new Set(data.completedQuestions);
+                            saveProgress();
+                            updateProgress();
+                            applyFilters();
+                            alert('Progress imported successfully!');
+                        }
+                    } else {
+                        alert('Invalid file format');
+                    }
+                } catch (err) {
+                    alert('Error reading file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Generate detailed report
+        function generateReport() {
+            const stats = calculateDetailedStats();
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(`
+                <html>
+                    <head>
+                        <title>CKA Progress Report</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .header { background: #667eea; color: white; padding: 20px; text-align: center; }
+                            .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+                            .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+                            .stat-number { font-size: 2em; font-weight: bold; color: #667eea; }
+                            .progress-bar { width: 100%; height: 20px; background: #ecf0f1; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+                            .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>🚀 CKA Progress Report</h1>
+                            <p>Generated on ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.totalCompleted}/${stats.totalQuestions}</div>
+                                <div>Total Progress</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${stats.completionPercentage}%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.completionPercentage}%</div>
+                                <div>Completion Rate</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.estimatedHoursRemaining}</div>
+                                <div>Estimated Hours Remaining</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.averageTimePerQuestion}</div>
+                                <div>Avg. Minutes per Question</div>
+                            </div>
+                        </div>
+                        <h2>Progress by Week</h2>
+                        <div class="stat-grid">
+                            ${Object.keys(questionsData).map(weekKey => {
+                                const week = questionsData[weekKey];
+                                const completed = week.questions.filter(q => completedQuestions.has(q.id)).length;
+                                const percentage = Math.round((completed / week.questions.length) * 100);
+                                return `
+                                    <div class="stat-card">
+                                        <div class="stat-number">${completed}/${week.questions.length}</div>
+                                        <div>${week.title}</div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <h2>Progress by Difficulty</h2>
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.beginnerCompleted}/${stats.beginnerTotal}</div>
+                                <div>Beginner Questions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.intermediateCompleted}/${stats.intermediateTotal}</div>
+                                <div>Intermediate Questions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.advancedCompleted}/${stats.advancedTotal}</div>
+                                <div>Advanced Questions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.examCompleted}/${stats.examTotal}</div>
+                                <div>Exam Scenarios</div>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+            `);
+        }
+
+        // Calculate detailed statistics
+        function calculateDetailedStats() {
+            const allQuestions = Object.values(questionsData).flatMap(week => week.questions);
+            const totalQuestions = allQuestions.length;
+            const totalCompleted = completedQuestions.size;
+            const completionPercentage = Math.round((totalCompleted / totalQuestions) * 100);
+
+            const difficultyStats = {
+                beginner: { total: 0, completed: 0 },
+                intermediate: { total: 0, completed: 0 },
+                advanced: { total: 0, completed: 0 },
+                exam: { total: 0, completed: 0 }
+            };
+
+            allQuestions.forEach(q => {
+                difficultyStats[q.difficulty].total++;
+                if (completedQuestions.has(q.id)) {
+                    difficultyStats[q.difficulty].completed++;
+                }
+            });
+
+            const averageTimePerQuestion = 5; // Estimate 5 minutes per question
+            const estimatedHoursRemaining = Math.round(((totalQuestions - totalCompleted) * averageTimePerQuestion) / 60);
+
+            return {
+                totalQuestions,
+                totalCompleted,
+                completionPercentage,
+                estimatedHoursRemaining,
+                averageTimePerQuestion,
+                beginnerTotal: difficultyStats.beginner.total,
+                beginnerCompleted: difficultyStats.beginner.completed,
+                intermediateTotal: difficultyStats.intermediate.total,
+                intermediateCompleted: difficultyStats.intermediate.completed,
+                advancedTotal: difficultyStats.advanced.total,
+                advancedCompleted: difficultyStats.advanced.completed,
+                examTotal: difficultyStats.exam.total,
+                examCompleted: difficultyStats.exam.completed
+            };
+        }
+
+        // Toggle statistics section
+        function toggleStats() {
+            const statsSection = document.getElementById('statsSection');
+            if (statsSection.style.display === 'none') {
+                updateStatistics();
+                statsSection.style.display = 'grid';
+            } else {
+                statsSection.style.display = 'none';
+            }
+        }
+
+        // Update statistics display
+        function updateStatistics() {
+            const stats = calculateDetailedStats();
+            
+            document.getElementById('beginnerCompleted').textContent = `${stats.beginnerCompleted}/${stats.beginnerTotal}`;
+            document.getElementById('intermediateCompleted').textContent = `${stats.intermediateCompleted}/${stats.intermediateTotal}`;
+            document.getElementById('advancedCompleted').textContent = `${stats.advancedCompleted}/${stats.advancedTotal}`;
+            document.getElementById('examCompleted').textContent = `${stats.examCompleted}/${stats.examTotal}`;
+            document.getElementById('completionPercentage').textContent = `${stats.completionPercentage}%`;
+            document.getElementById('estimatedTime').textContent = stats.estimatedHoursRemaining;
+        }
+
+        // Initialize the application
+        function init() {
+            loadProgress();
+            renderQuestions();
+            updateProgress();
+            setupEventListeners();
+        }
+
+        // Render all questions
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            Object.keys(questionsData).forEach(weekKey => {
+                const week = questionsData[weekKey];
+                const weekElement = createWeekElement(weekKey, week);
+                container.appendChild(weekElement);
+            });
+        }
+
+        // Create week section element
+        function createWeekElement(weekKey, week) {
+            const weekDiv = document.createElement('div');
+            weekDiv.className = 'week-section';
+            weekDiv.innerHTML = `
+                <div class="week-header" onclick="toggleWeek('${weekKey}')">
+                    <div>
+                        <h2>${week.title}</h2>
+                        <div class="week-progress">${week.subtitle}</div>
+                    </div>
+                    <div>
+                        <span class="week-progress" id="progress-${weekKey}">0/${week.questions.length}</span>
+                        <span class="expand-icon" id="icon-${weekKey}">▼</span>
+                    </div>
+                </div>
+                <div class="week-content" id="content-${weekKey}">
+                    ${week.questions.map(q => createQuestionHTML(q)).join('')}
+                </div>
+            `;
+            return weekDiv;
+        }
+
+        // Create question HTML
+        function createQuestionHTML(question) {
+            const isCompleted = completedQuestions.has(question.id);
+            return `
+                <div class="question-item ${isCompleted ? 'completed' : ''}" data-id="${question.id}" data-difficulty="${question.difficulty}">
+                    <input type="checkbox" class="question-checkbox" ${isCompleted ? 'checked' : ''} 
+                           onchange="toggleQuestion('${question.id}')">
+                    <div class="question-content">
+                        <div class="question-number">${question.number}</div>
+                        <div class="question-text">${question.text}</div>
+                        <span class="difficulty-badge difficulty-${question.difficulty}">${question.difficulty.toUpperCase()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Toggle question completion
+        function toggleQuestion(questionId) {
+            if (completedQuestions.has(questionId)) {
+                completedQuestions.delete(questionId);
+            } else {
+                completedQuestions.add(questionId);
+            }
+            saveProgress();
+            updateProgress();
+            applyFilters();
+        }
+
+        // Toggle week expansion
+        function toggleWeek(weekKey) {
+            const content = document.getElementById(`content-${weekKey}`);
+            const icon = document.getElementById(`icon-${weekKey}`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.textContent = '▼';
+            } else {
+                content.classList.add('expanded');
+                icon.textContent = '▲';
+            }
+        }
+
+        // Update progress displays
+        function updateProgress() {
+            const totalQuestions = Object.values(questionsData).reduce((sum, week) => sum + week.questions.length, 0);
+            const totalCompleted = completedQuestions.size;
+            const percentage = Math.round((totalCompleted / totalQuestions) * 100);
+
+            // Update overall progress
+            document.getElementById('totalProgress').textContent = `${totalCompleted}/${totalQuestions}`;
+            document.getElementById('overallProgress').style.width = `${percentage}%`;
+            document.getElementById('overallProgress').textContent = `${percentage}%`;
+
+            // Update individual week progress
+            Object.keys(questionsData).forEach(weekKey => {
+                const week = questionsData[weekKey];
+                const weekCompleted = week.questions.filter(q => completedQuestions.has(q.id)).length;
+                
+                const progressElement = document.getElementById(`progress-${weekKey}`);
+                if (progressElement) {
+                    progressElement.textContent = `${weekCompleted}/${week.questions.length}`;
+                }
+
+                const weekProgressElement = document.getElementById(`${weekKey}Progress`);
+                if (weekProgressElement) {
+                    weekProgressElement.textContent = `${weekCompleted}/${week.questions.length}`;
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchBox').addEventListener('input', (e) => {
+                currentSearch = e.target.value.toLowerCase();
+                applyFilters();
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilter = e.target.dataset.filter;
+                    applyFilters();
+                });
+            });
+        }
+
+        // Apply filters and search
+        function applyFilters() {
+            document.querySelectorAll('.question-item').forEach(item => {
+                const questionId = item.dataset.id;
+                const difficulty = item.dataset.difficulty;
+                const text = item.textContent.toLowerCase();
+                const isCompleted = completedQuestions.has(questionId);
+
+                let show = true;
+
+                // Apply search filter
+                if (currentSearch && !text.includes(currentSearch)) {
+                    show = false;
+                }
+
+                // Apply status filter
+                if (currentFilter === 'completed' && !isCompleted) {
+                    show = false;
+                } else if (currentFilter === 'pending' && isCompleted) {
+                    show = false;
+                } else if (currentFilter !== 'all' && currentFilter !== 'completed' && currentFilter !== 'pending' && difficulty !== currentFilter) {
+                    show = false;
+                }
+
+                item.style.display = show ? 'flex' : 'none';
+
+                // Update completion styling
+                if (isCompleted) {
+                    item.classList.add('completed');
+                    item.querySelector('.question-checkbox').checked = true;
+                } else {
+                    item.classList.remove('completed');
+                    item.querySelector('.question-checkbox').checked = false;
+                }
+            });
+        }
+
+        // Mark all questions in current view as complete
+        function markAllInWeekComplete() {
+            const visibleQuestions = document.querySelectorAll('.question-item[style*="flex"], .question-item:not([style])');
+            visibleQuestions.forEach(item => {
+                const questionId = item.dataset.id;
+                if (!completedQuestions.has(questionId)) {
+                    completedQuestions.add(questionId);
+                }
+            });
+            saveProgress();
+            updateProgress();
+            applyFilters();
+        }
+
+        // Reset all progress
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
+                completedQuestions.clear();
+                saveProgress();
+                updateProgress();
+                applyFilters();
+            }
+        }
+
+        // Expand all weeks
+        function expandAllWeeks() {
+            Object.keys(questionsData).forEach(weekKey => {
+                const content = document.getElementById(`content-${weekKey}`);
+                const icon = document.getElementById(`icon-${weekKey}`);
+                if (content && icon) {
+                    content.classList.add('expanded');
+                    icon.textContent = '▲';
+                }
+            });
+        }
+
+        // Collapse all weeks
+        function collapseAllWeeks() {
+            Object.keys(questionsData).forEach(weekKey => {
+                const content = document.getElementById(`content-${weekKey}`);
+                const icon = document.getElementById(`icon-${weekKey}`);
+                if (content && icon) {
+                    content.classList.remove('expanded');
+                    icon.textContent = '▼';
+                }
+            });
+        }
+
+        // Initialize the app when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            // Expand first week by default
+            toggleWeek('week1');
+        });
+
+        // Auto-save every 30 seconds as backup
+        setInterval(saveProgress, 30000);
+
+        // Save before page unload
+        window.addEventListener('beforeunload', saveProgress);
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'f':
+                        e.preventDefault();
+                        document.getElementById('searchBox').focus();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        saveProgress();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        exportProgress();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
