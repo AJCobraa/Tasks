@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>etcd Practice Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .theory-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 3px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .practice-panel {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .operation-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .operation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .simulator {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .command-input {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .command-input input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px 0 0 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .command-input input:focus {
+            border-color: #3498db;
+        }
+
+        .command-input button {
+            padding: 12px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .command-input button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .output-area {
+            flex-grow: 1;
+            background: #2c3e50;
+            color: #2ecc71;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+            min-height: 300px;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .quick-commands {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #3498db;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .quiz-header h4 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .quiz-progress {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .quiz-content p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .hint {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .quiz-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quiz-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .hint-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .hint-btn:hover {
+            background: #e67e22;
+        }
+
+        .check-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .check-btn:hover {
+            background: #229954;
+        }
+
+        .next-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .next-btn:hover {
+            background: #2980b9;
+        }
+
+        .skip-btn {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .skip-btn:hover {
+            background: #7f8c8d;
+        }
+
+        .reset-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #c0392b;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: #ecf0f1;
+            padding: 5px;
+            border-radius: 25px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #7f8c8d;
+        }
+
+        .mode-btn.active {
+            background: #3498db;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .quick-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background: #7f8c8d;
+            transform: translateY(-1px);
+        }
+
+        .status-bar {
+            background: #34495e;
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
+
+        .success {
+            color: #2ecc71;
+        }
+
+        .warning {
+            color: #f39c12;
+        }
+
+        .key-display {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid #3498db;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .theory-panel {
+                border-right: none;
+                border-bottom: 3px solid #e9ecef;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ etcd Practice Lab</h1>
+            <p>Learn etcd operations through hands-on practice</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="theory-panel">
+                <div class="section">
+                    <h3>🔑 Basic Operations</h3>
+                    
+                    <div class="operation-card">
+                        <h4>PUT - Store Key-Value Pairs</h4>
+                        <p>Store data in etcd with a key-value pair.</p>
+                        <div class="code">etcd put /config/app/name "MyApp"</div>
+                        <div class="code">etcd put /users/1 "John Doe"</div>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>GET - Retrieve Values</h4>
+                        <p>Retrieve stored values by their keys.</p>
+                        <div class="code">etcd get /config/app/name</div>
+                        <div class="code">etcd get /users/1</div>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>DEL - Delete Keys</h4>
+                        <p>Remove keys and their values from etcd.</p>
+                        <div class="code">etcd del /config/app/name</div>
+                        <div class="code">etcd del /users/1</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🔍 Advanced Operations</h3>
+                    
+                    <div class="operation-card">
+                        <h4>GET with Prefix</h4>
+                        <p>Get all keys that start with a prefix.</p>
+                        <div class="code">etcd get /config/ --prefix</div>
+                        <div class="code">etcd get /users/ --prefix</div>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>GET Range</h4>
+                        <p>Get keys within a specific range.</p>
+                        <div class="code">etcd get /config/app/a /config/app/z</div>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>WATCH - Monitor Changes</h4>
+                        <p>Watch for changes on specific keys.</p>
+                        <div class="code">etcd watch /config/app/name</div>
+                        <div class="code">etcd watch /users/ --prefix</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>⚡ Special Features</h3>
+                    
+                    <div class="operation-card">
+                        <h4>TTL - Time To Live</h4>
+                        <p>Set expiration time for keys.</p>
+                        <div class="code">etcd put /session/abc123 "active" --ttl=60</div>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>Lease Operations</h4>
+                        <p>Create and manage leases for automatic cleanup.</p>
+                        <div class="code">etcd lease grant 300</div>
+                        <div class="code">etcd put /temp/data "value" --lease=1234</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>❓ Practice Questions</h3>
+                    
+                    <div class="operation-card">
+                        <h4>Beginner Level</h4>
+                        <p><strong>Q1:</strong> Store your name with key "/user/name" and retrieve it.</p>
+                        <p><strong>Q2:</strong> Create three configuration keys under "/config/app/" and list them all at once.</p>
+                        <p><strong>Q3:</strong> Delete a key and verify it's gone.</p>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>Intermediate Level</h4>
+                        <p><strong>Q4:</strong> Create a session key that expires in 30 seconds. Watch it disappear!</p>
+                        <p><strong>Q5:</strong> Store service endpoints for 3 different services, then retrieve all services at once.</p>
+                        <p><strong>Q6:</strong> Set up a watch on "/alerts/" then add some alert keys to see real-time notifications.</p>
+                    </div>
+
+                    <div class="operation-card">
+                        <h4>Advanced Level</h4>
+                        <p><strong>Q7:</strong> Design a hierarchical config structure for a microservices app with database, cache, and API settings.</p>
+                        <p><strong>Q8:</strong> Simulate a leader election scenario using TTL keys.</p>
+                        <p><strong>Q9:</strong> Create a service discovery pattern where services register themselves and can find each other.</p>
+                    </div>
+                </div>
+            </div>
+
+                            <div class="practice-panel">
+                <h3>🛠️ Practice Simulator</h3>
+                
+                <div class="quiz-section" id="quizSection" style="display: none;">
+                    <div class="quiz-header">
+                        <h4 id="currentQuestion">Loading question...</h4>
+                        <div class="quiz-progress">
+                            Question <span id="questionNum">1</span> of <span id="totalQuestions">9</span>
+                        </div>
+                    </div>
+                    <div class="quiz-content">
+                        <p id="questionText">Loading...</p>
+                        <div id="questionHint" class="hint" style="display: none;"></div>
+                        <div class="quiz-actions">
+                            <button onclick="showHint()" class="hint-btn">💡 Hint</button>
+                            <button onclick="checkAnswer()" class="check-btn">✅ Check My Solution</button>
+                            <button onclick="nextQuestion()" class="next-btn" id="nextBtn" style="display: none;">Next Question ➡️</button>
+                            <button onclick="skipQuestion()" class="skip-btn">⏭️ Skip Question</button>
+                            <button onclick="resetQuiz()" class="reset-btn">🔄 Restart Quiz</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mode-toggle">
+                    <button id="practiceBtn" class="mode-btn active" onclick="setMode('practice')">🛠️ Free Practice</button>
+                    <button id="quizBtn" class="mode-btn" onclick="setMode('quiz')">❓ Guided Questions</button>
+                </div>
+                
+                <div class="quick-commands">
+                    <button class="quick-btn" onclick="insertCommand('etcd put /config/app/name \"MyApp\"')">Sample PUT</button>
+                    <button class="quick-btn" onclick="insertCommand('etcd get /config/app/name')">Sample GET</button>
+                    <button class="quick-btn" onclick="insertCommand('etcd get /config/ --prefix')">GET Prefix</button>
+                    <button class="quick-btn" onclick="insertCommand('etcd del /config/app/name')">Sample DEL</button>
+                    <button class="quick-btn" onclick="insertCommand('etcd watch /config/app/name')">Sample WATCH</button>
+                    <button class="quick-btn" onclick="clearOutput()">Clear Output</button>
+                </div>
+
+                <div class="simulator">
+                    <div class="command-input">
+                        <input type="text" id="commandInput" placeholder="Enter etcd command (e.g., etcd put /key value)" onkeypress="handleKeyPress(event)">
+                        <button onclick="executeCommand()">Execute</button>
+                    </div>
+                    
+                    <div class="output-area" id="output">Welcome to etcd Practice Lab! 🚀
+
+Try these commands to get started:
+• etcd put /config/app/name "MyApp"
+• etcd get /config/app/name  
+• etcd get /config/ --prefix
+• etcd del /config/app/name
+
+Current etcd store is empty. Start adding some data!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span>etcd v3.5.x Simulator | Keys in store: <span id="keyCount">0</span> | Status: <span id="status">Ready</span></span>
+        </div>
+    </div>
+
+    <script>
+        // Simulated etcd store
+        let etcdStore = new Map();
+        let watchers = new Map();
+        let leases = new Map();
+        let leaseCounter = 1000;
+        let currentMode = 'practice';
+        let currentQuestionIndex = 0;
+        let userSolutions = [];
+
+        const questions = [
+            {
+                level: "Beginner",
+                title: "Store and Retrieve Personal Data",
+                text: "Store your name with the key '/user/name' and then retrieve it to verify it was stored correctly.",
+                hint: "Use 'etcd put /user/name \"YourName\"' to store, then 'etcd get /user/name' to retrieve.",
+                expectedCommands: ["put", "get"],
+                expectedKeys: ["/user/name"],
+                validation: (commands, store) => {
+                    return commands.some(cmd => cmd.includes("put") && cmd.includes("/user/name")) &&
+                           commands.some(cmd => cmd.includes("get") && cmd.includes("/user/name")) &&
+                           store.has("/user/name");
+                }
+            },
+            {
+                level: "Beginner", 
+                title: "Configuration Management",
+                text: "Create three configuration keys under '/config/app/': database, cache, and api_port. Then retrieve all config keys at once using prefix matching.",
+                hint: "Store each config with 'etcd put /config/app/database \"value\"', then use 'etcd get /config/app/ --prefix' to get all.",
+                expectedCommands: ["put", "get"],
+                expectedKeys: ["/config/app/database", "/config/app/cache", "/config/app/api_port"],
+                validation: (commands, store) => {
+                    const hasAllPuts = ["/config/app/database", "/config/app/cache", "/config/app/api_port"]
+                        .every(key => commands.some(cmd => cmd.includes("put") && cmd.includes(key)) && store.has(key));
+                    const hasPrefixGet = commands.some(cmd => cmd.includes("get") && cmd.includes("/config/app/") && cmd.includes("--prefix"));
+                    return hasAllPuts && hasPrefixGet;
+                }
+            },
+            {
+                level: "Beginner",
+                title: "Delete and Verify",
+                text: "Create a key '/temp/test' with any value, then delete it and verify it's gone by trying to retrieve it.",
+                hint: "First 'etcd put /temp/test \"value\"', then 'etcd del /temp/test', finally 'etcd get /temp/test' should show key not found.",
+                expectedCommands: ["put", "del", "get"],
+                expectedKeys: ["/temp/test"],
+                validation: (commands, store) => {
+                    return commands.some(cmd => cmd.includes("put") && cmd.includes("/temp/test")) &&
+                           commands.some(cmd => cmd.includes("del") && cmd.includes("/temp/test")) &&
+                           commands.some(cmd => cmd.includes("get") && cmd.includes("/temp/test")) &&
+                           !store.has("/temp/test");
+                }
+            },
+            {
+                level: "Intermediate",
+                title: "TTL Session Management",
+                text: "Create a session key '/session/user123' that expires in 15 seconds. Watch it automatically disappear!",
+                hint: "Use 'etcd put /session/user123 \"active\" --ttl=15' and then periodically check with 'etcd get /session/user123'.",
+                expectedCommands: ["put"],
+                expectedKeys: ["/session/user123"],
+                validation: (commands, store) => {
+                    return commands.some(cmd => cmd.includes("put") && cmd.includes("/session/user123") && cmd.includes("--ttl"));
+                }
+            },
+            {
+                level: "Intermediate",
+                title: "Service Discovery",
+                text: "Create service endpoints for 3 services: '/services/api/node1', '/services/db/primary', and '/services/cache/redis'. Then retrieve all services at once.",
+                hint: "Store each service endpoint, then use 'etcd get /services/ --prefix' to see all registered services.",
+                expectedCommands: ["put", "get"],
+                expectedKeys: ["/services/api/node1", "/services/db/primary", "/services/cache/redis"],
+                validation: (commands, store) => {
+                    const hasAllServices = ["/services/api/node1", "/services/db/primary", "/services/cache/redis"]
+                        .every(key => commands.some(cmd => cmd.includes("put") && cmd.includes(key)) && store.has(key));
+                    const hasServicesGet = commands.some(cmd => cmd.includes("get") && cmd.includes("/services/") && cmd.includes("--prefix"));
+                    return hasAllServices && hasServicesGet;
+                }
+            },
+            {
+                level: "Intermediate",
+                title: "Real-time Monitoring with Watch",
+                text: "Set up a watch on '/alerts/' prefix, then add some alert keys like '/alerts/cpu', '/alerts/memory' to see real-time notifications.",
+                hint: "Start with 'etcd watch /alerts/ --prefix', then in separate commands add 'etcd put /alerts/cpu \"high\"' etc.",
+                expectedCommands: ["watch", "put"],
+                expectedKeys: ["/alerts/cpu", "/alerts/memory"],
+                validation: (commands, store) => {
+                    return commands.some(cmd => cmd.includes("watch") && cmd.includes("/alerts/")) &&
+                           commands.some(cmd => cmd.includes("put") && cmd.includes("/alerts/"));
+                }
+            },
+            {
+                level: "Advanced",
+                title: "Microservices Configuration",
+                text: "Design a complete config structure for a microservices app: '/config/database/host', '/config/database/port', '/config/cache/redis_url', '/config/api/timeout'. Store meaningful values for each.",
+                hint: "Create a hierarchical structure with logical grouping. Use realistic values like 'localhost:5432' for database.",
+                expectedCommands: ["put"],
+                expectedKeys: ["/config/database/host", "/config/database/port", "/config/cache/redis_url", "/config/api/timeout"],
+                validation: (commands, store) => {
+                    return ["/config/database/host", "/config/database/port", "/config/cache/redis_url", "/config/api/timeout"]
+                        .every(key => commands.some(cmd => cmd.includes("put") && cmd.includes(key)) && store.has(key));
+                }
+            },
+            {
+                level: "Advanced",
+                title: "Leader Election Simulation",
+                text: "Simulate leader election: create '/leader/current' with TTL=20 seconds for node1, then have node2 try to become leader when it expires.",
+                hint: "Use 'etcd put /leader/current \"node1\" --ttl=20', wait for expiry, then 'etcd put /leader/current \"node2\" --ttl=20'.",
+                expectedCommands: ["put"],
+                expectedKeys: ["/leader/current"],
+                validation: (commands, store) => {
+                    return commands.filter(cmd => cmd.includes("put") && cmd.includes("/leader/current") && cmd.includes("--ttl")).length >= 1;
+                }
+            },
+            {
+                level: "Advanced",
+                title: "Dynamic Service Discovery",
+                text: "Create a service registry where services register themselves with health info: '/registry/service-a/health', '/registry/service-b/health'. Set TTL for auto-cleanup and use watch to monitor service health.",
+                hint: "Combine service registration with TTL for health checks and use watch to monitor the '/registry/' prefix for changes.",
+                expectedCommands: ["put", "watch"],
+                expectedKeys: ["/registry/service-a/health", "/registry/service-b/health"],
+                validation: (commands, store) => {
+                    const hasRegistration = commands.some(cmd => cmd.includes("put") && cmd.includes("/registry/"));
+                    const hasWatch = commands.some(cmd => cmd.includes("watch") && cmd.includes("/registry/"));
+                    return hasRegistration && hasWatch;
+                }
+            }
+        ];
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('practiceBtn').classList.toggle('active', mode === 'practice');
+            document.getElementById('quizBtn').classList.toggle('active', mode === 'quiz');
+            document.getElementById('quizSection').style.display = mode === 'quiz' ? 'block' : 'none';
+            
+            if (mode === 'quiz') {
+                currentQuestionIndex = 0;
+                userSolutions = [];
+                loadCurrentQuestion();
+            }
+        }
+
+        function loadCurrentQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletion();
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            document.getElementById('currentQuestion').textContent = `${question.level}: ${question.title}`;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('questionHint').textContent = question.hint;
+            document.getElementById('questionHint').style.display = 'none';
+            document.getElementById('questionNum').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            // Clear previous solution tracking
+            userSolutions[currentQuestionIndex] = {
+                commands: [],
+                completed: false
+            };
+        }
+
+        function showHint() {
+            document.getElementById('questionHint').style.display = 'block';
+        }
+
+        function checkAnswer() {
+            const question = questions[currentQuestionIndex];
+            const solution = userSolutions[currentQuestionIndex];
+            
+            if (!solution || solution.commands.length === 0) {
+                addOutput("❌ No commands executed yet! Try running some etcd commands first.", 'error');
+                return;
+            }
+            
+            const isCorrect = question.validation(solution.commands, etcdStore);
+            
+            if (isCorrect) {
+                addOutput("🎉 Excellent! You've successfully completed this challenge!", 'success');
+                addOutput(`✅ Question ${currentQuestionIndex + 1}: ${question.title} - COMPLETED`, 'success');
+                solution.completed = true;
+                
+                // Show next button
+                const nextBtn = document.getElementById('nextBtn');
+                if (nextBtn) {
+                    nextBtn.style.display = 'inline-block';
+                }
+                
+                updateStatus('Question completed!', 'success');
+                
+                // Auto-advance after a short delay if it's not the last question
+                if (currentQuestionIndex < questions.length - 1) {
+                    addOutput("✨ Great! Moving to the next question in 3 seconds...", 'success');
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 3000);
+                }
+            } else {
+                addOutput("❌ Not quite right. Check the hint and try again!", 'error');
+                addOutput("Make sure you're following all the requirements in the question.", 'warning');
+                updateStatus('Try again', 'error');
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadCurrentQuestion();
+                updateStatus(`Question ${currentQuestionIndex + 1} loaded`, 'success');
+            } else {
+                showCompletion();
+            }
+        }
+
+        function showCompletion() {
+            const completedCount = userSolutions.filter(s => s && s.completed).length;
+            addOutput(`\n🎊 QUIZ COMPLETED! 🎊`, 'success');
+            addOutput(`You completed ${completedCount} out of ${questions.length} questions.`, 'success');
+            
+            if (completedCount === questions.length) {
+                addOutput(`🏆 Perfect score! You've mastered etcd basics!`, 'success');
+            } else if (completedCount >= questions.length * 0.7) {
+                addOutput(`👍 Great job! You have a solid understanding of etcd.`, 'success');
+            } else {
+                addOutput(`📚 Good effort! Review the concepts and try again for better mastery.`, 'warning');
+            }
+            
+            addOutput(`Feel free to continue practicing in Free Practice mode!`, 'success');
+            updateStatus('Quiz completed!', 'success');
+        }
+
+        function skipQuestion() {
+            addOutput(`⏭️ Skipping Question ${currentQuestionIndex + 1}`, 'warning');
+            userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+            nextQuestion();
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            userSolutions = [];
+            etcdStore.clear();
+            watchers.clear();
+            leases.clear();
+            clearOutput();
+            addOutput("Quiz reset! Starting from Question 1...\n", 'warning');
+            loadCurrentQuestion();
+            updateStatus('Quiz reset', 'warning');
+        }
+
+        function loadCurrentQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletion();
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            document.getElementById('currentQuestion').textContent = `${question.level}: ${question.title}`;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('questionHint').textContent = question.hint;
+            document.getElementById('questionHint').style.display = 'none';
+            document.getElementById('questionNum').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            
+            // Hide next button initially
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.style.display = 'none';
+            }
+            
+            // Initialize solution tracking for current question
+            if (!userSolutions[currentQuestionIndex]) {
+                userSolutions[currentQuestionIndex] = {
+                    commands: [],
+                    completed: false
+                };
+            }
+            
+            // Show question info in output
+            addOutput(`\n=== Question ${currentQuestionIndex + 1} of ${questions.length} ===`, 'success');
+            addOutput(`${question.level} Level: ${question.title}`, 'success');
+            addOutput(`${question.text}`, 'success');
+            addOutput(''); // Empty line
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = type;
+            
+            document.getElementById('keyCount').textContent = etcdStore.size;
+        }
+
+        function addOutput(text, type = 'normal') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            let className = '';
+            
+            switch(type) {
+                case 'error': className = 'error'; break;
+                case 'success': className = 'success'; break;
+                case 'warning': className = 'warning'; break;
+            }
+            
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${text}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = 'Output cleared.\n';
+        }
+
+        function insertCommand(command) {
+            document.getElementById('commandInput').value = command;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                executeCommand();
+            }
+        }
+
+        function parseCommand(input) {
+            // Simple command parser
+            const parts = input.trim().split(/\s+/);
+            if (parts[0] !== 'etcd') {
+                throw new Error('Commands must start with "etcd"');
+            }
+            
+            const command = parts[1];
+            const args = parts.slice(2);
+            const flags = {};
+            const cleanArgs = [];
+            
+            for (let i = 0; i < args.length; i++) {
+                if (args[i].startsWith('--')) {
+                    const flagName = args[i].substring(2);
+                    if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+                        flags[flagName] = args[i + 1];
+                        i++; // Skip next arg as it's the flag value
+                    } else {
+                        flags[flagName] = true;
+                    }
+                } else {
+                    cleanArgs.push(args[i].replace(/['"]/g, ''));
+                }
+            }
+            
+            return { command, args: cleanArgs, flags };
+        }
+
+        function executePut(args, flags) {
+            if (args.length < 2) {
+                throw new Error('PUT requires key and value');
+            }
+            
+            const key = args[0];
+            const value = args[1];
+            const ttl = flags.ttl ? parseInt(flags.ttl) : null;
+            const lease = flags.lease ? flags.lease : null;
+            
+            etcdStore.set(key, { value, ttl, lease, timestamp: Date.now() });
+            
+            if (ttl) {
+                setTimeout(() => {
+                    if (etcdStore.has(key)) {
+                        etcdStore.delete(key);
+                        addOutput(`Key expired: ${key}`, 'warning');
+                        updateStatus('Key expired', 'warning');
+                    }
+                }, ttl * 1000);
+            }
+            
+            // Trigger watchers
+            triggerWatchers(key, 'PUT', value);
+            
+            addOutput(`OK`, 'success');
+            addOutput(`Key: ${key}`);
+            addOutput(`Value: ${value}`);
+            if (ttl) addOutput(`TTL: ${ttl} seconds`);
+            
+            updateStatus('PUT successful', 'success');
+        }
+
+        function executeGet(args, flags) {
+            if (args.length < 1) {
+                throw new Error('GET requires a key');
+            }
+            
+            const key = args[0];
+            
+            if (flags.prefix) {
+                const results = [];
+                for (let [k, v] of etcdStore) {
+                    if (k.startsWith(key)) {
+                        results.push({ key: k, value: v.value });
+                    }
+                }
+                
+                if (results.length === 0) {
+                    addOutput(`No keys found with prefix: ${key}`, 'warning');
+                } else {
+                    addOutput(`Found ${results.length} keys with prefix "${key}":`, 'success');
+                    results.forEach(r => {
+                        addOutput(`${r.key}`);
+                        addOutput(`${r.value}`);
+                        addOutput('---');
+                    });
+                }
+            } else if (args.length === 2) {
+                // Range query
+                const startKey = args[0];
+                const endKey = args[1];
+                const results = [];
+                
+                for (let [k, v] of etcdStore) {
+                    if (k >= startKey && k < endKey) {
+                        results.push({ key: k, value: v.value });
+                    }
+                }
+                
+                if (results.length === 0) {
+                    addOutput(`No keys found in range [${startKey}, ${endKey})`, 'warning');
+                } else {
+                    addOutput(`Found ${results.length} keys in range:`, 'success');
+                    results.forEach(r => {
+                        addOutput(`${r.key}`);
+                        addOutput(`${r.value}`);
+                        addOutput('---');
+                    });
+                }
+            } else {
+                // Single key
+                if (etcdStore.has(key)) {
+                    const data = etcdStore.get(key);
+                    addOutput(`${key}`, 'success');
+                    addOutput(`${data.value}`);
+                } else {
+                    addOutput(`Key not found: ${key}`, 'error');
+                }
+            }
+            
+            updateStatus('GET completed', 'success');
+        }
+
+        function executeDel(args, flags) {
+            if (args.length < 1) {
+                throw new Error('DEL requires a key');
+            }
+            
+            const key = args[0];
+            let deletedCount = 0;
+            
+            if (flags.prefix) {
+                const keysToDelete = [];
+                for (let k of etcdStore.keys()) {
+                    if (k.startsWith(key)) {
+                        keysToDelete.push(k);
+                    }
+                }
+                
+                keysToDelete.forEach(k => {
+                    etcdStore.delete(k);
+                    triggerWatchers(k, 'DELETE', null);
+                    deletedCount++;
+                });
+            } else {
+                if (etcdStore.has(key)) {
+                    etcdStore.delete(key);
+                    triggerWatchers(key, 'DELETE', null);
+                    deletedCount = 1;
+                }
+            }
+            
+            addOutput(`${deletedCount}`, 'success');
+            if (deletedCount > 0) {
+                addOutput(`Deleted ${deletedCount} key(s)`, 'success');
+            } else {
+                addOutput(`No keys found to delete`, 'warning');
+            }
+            
+            updateStatus('DEL completed', 'success');
+        }
+
+        function executeWatch(args, flags) {
+            if (args.length < 1) {
+                throw new Error('WATCH requires a key');
+            }
+            
+            const key = args[0];
+            const watchId = Math.random().toString(36).substr(2, 9);
+            
+            if (!watchers.has(key)) {
+                watchers.set(key, []);
+            }
+            
+            watchers.get(key).push({
+                id: watchId,
+                prefix: flags.prefix || false
+            });
+            
+            addOutput(`Started watching: ${key}`, 'success');
+            if (flags.prefix) {
+                addOutput(`Watching with prefix matching`, 'success');
+            }
+            addOutput(`Watch ID: ${watchId}`);
+            addOutput(`(Changes will appear here automatically)`);
+            
+            updateStatus('WATCH started', 'success');
+        }
+
+        function triggerWatchers(key, event, value) {
+            for (let [watchKey, watchList] of watchers) {
+                watchList.forEach(watcher => {
+                    let shouldTrigger = false;
+                    
+                    if (watcher.prefix && key.startsWith(watchKey)) {
+                        shouldTrigger = true;
+                    } else if (!watcher.prefix && key === watchKey) {
+                        shouldTrigger = true;
+                    }
+                    
+                    if (shouldTrigger) {
+                        addOutput(`🔔 WATCH EVENT [${watcher.id}]`, 'warning');
+                        addOutput(`Event: ${event}`);
+                        addOutput(`Key: ${key}`);
+                        if (value !== null) {
+                            addOutput(`Value: ${value}`);
+                        }
+                        addOutput('---');
+                    }
+                });
+            }
+        }
+
+        function executeLease(args, flags) {
+            if (args.length < 1) {
+                throw new Error('LEASE requires a subcommand');
+            }
+            
+            const subcommand = args[0];
+            
+            switch (subcommand) {
+                case 'grant':
+                    if (args.length < 2) {
+                        throw new Error('LEASE GRANT requires TTL');
+                    }
+                    const ttl = parseInt(args[1]);
+                    const leaseId = leaseCounter++;
+                    leases.set(leaseId, { ttl, created: Date.now() });
+                    
+                    addOutput(`lease ${leaseId} granted with TTL(${ttl}s)`, 'success');
+                    updateStatus('Lease granted', 'success');
+                    break;
+                    
+                default:
+                    throw new Error(`Unknown lease subcommand: ${subcommand}`);
+            }
+        }
+
+        function executeCommand() {
+            const input = document.getElementById('commandInput').value.trim();
+            if (!input) return;
+            
+            addOutput(`$ ${input}`);
+            
+            // Track command for quiz mode
+            if (currentMode === 'quiz' && currentQuestionIndex < questions.length) {
+                if (!userSolutions[currentQuestionIndex]) {
+                    userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+                }
+                userSolutions[currentQuestionIndex].commands.push(input.toLowerCase());
+            }
+            
+            document.getElementById('commandInput').value = '';
+            
+            try {
+                const { command, args, flags } = parseCommand(input);
+                
+                switch (command.toLowerCase()) {
+                    case 'put':
+                        executePut(args, flags);
+                        break;
+                    case 'get':
+                        executeGet(args, flags);
+                        break;
+                    case 'del':
+                    case 'delete':
+                        executeDel(args, flags);
+                        break;
+                    case 'watch':
+                        executeWatch(args, flags);
+                        break;
+                    case 'lease':
+                        executeLease(args, flags);
+                        break;
+                    default:
+                        throw new Error(`Unknown command: ${command}`);
+                }
+            } catch (error) {
+                addOutput(`Error: ${error.message}`, 'error');
+                updateStatus('Command failed', 'error');
+            }
+            
+            addOutput(''); // Empty line for readability
+        }
+
+        // Initialize
+        updateStatus('Ready');
+    </script>
+</body>
+</html>
