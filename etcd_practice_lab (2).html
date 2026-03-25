@@ -1,0 +1,285 @@
+        function executeWatch(args, flags) {
+            if (args.length < 1) {
+                throw new Error('WATCH requires a key');
+            }
+            
+            const key = args[0];
+            const watchId = Math.random().toString(36).substr(2, 9);
+            
+            if (!watchers.has(key)) {
+                watchers.set(key, []);
+            }
+            
+            watchers.get(key).push({
+                id: watchId,
+                prefix: flags.prefix || false
+            });
+            
+            addOutput(`Started watching: ${key}`, 'success');
+            if (flags.prefix) {
+                addOutput(`Watching with prefix matching`, 'success');
+            }
+            addOutput(`Watch ID: ${watchId}`);
+            addOutput(`(Changes will appear here automatically)`);
+            
+            updateStatus('WATCH started', 'success');
+        }
+
+        function triggerWatchers(key, event, value) {
+            for (let [watchKey, watchList] of watchers) {
+                watchList.forEach(watcher => {
+                    let shouldTrigger = false;
+                    
+                    if (watcher.prefix && key.startsWith(watchKey)) {
+                        shouldTrigger = true;
+                    } else if (!watcher.prefix && key === watchKey) {
+                        shouldTrigger = true;
+                    }
+                    
+                    if (shouldTrigger) {
+                        addOutput(`🔔 WATCH EVENT [${watcher.id}]`, 'warning');
+                        addOutput(`Event: ${event}`);
+                        addOutput(`Key: ${key}`);
+                        if (value !== null) {
+                            addOutput(`Value: ${value}`);
+                        }
+                        addOutput('---');
+                    }
+                });
+            }
+        }
+
+        function executeCommand() {
+            const input = document.getElementById('commandInput');
+            if (!input) return;
+            
+            const inputText = input.value.trim();
+            if (!inputText) return;
+            
+            addOutput(`$ ${inputText}`);
+            
+            // Track command for quiz mode
+            if (currentMode === 'quiz' && currentQuestionIndex < questions.length) {
+                if (!userSolutions[currentQuestionIndex]) {
+                    userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+                }
+                userSolutions[currentQuestionIndex].commands.push(inputText.toLowerCase());
+            }
+            
+            input.value = '';
+            
+            try {
+                const { command, args, flags } = parseCommand(inputText);
+                
+                switch (command.toLowerCase()) {
+                    case 'put':
+                        executePut(args, flags);
+                        break;
+                    case 'get':
+                        executeGet(args, flags);
+                        break;
+                    case 'del':
+                    case 'delete':
+                        executeDel(args, flags);
+                        break;
+                    case 'watch':
+                        executeWatch(args, flags);
+                        break;
+                    default:
+                        throw new Error(`Unknown command: ${command}`);
+                }
+            } catch (error) {
+                addOutput(`Error: ${error.message}`, 'error');
+                updateStatus('Command failed', 'error');
+            }
+            
+            addOutput('');
+        }
+
+        // Quiz Functions
+        function setMode(mode) {
+            currentMode = mode;
+            const practiceBtn = document.getElementById('practiceBtn');
+            const quizBtn = document.getElementById('quizBtn');
+            const quizSection = document.getElementById('quizSection');
+            
+            if (practiceBtn) practiceBtn.classList.toggle('active', mode === 'practice');
+            if (quizBtn) quizBtn.classList.toggle('active', mode === 'quiz');
+            if (quizSection) quizSection.style.display = mode === 'quiz' ? 'block' : 'none';
+            
+            if (mode === 'quiz') {
+                currentQuestionIndex = 0;
+                userSolutions = [];
+                loadCurrentQuestion();
+            }
+        }
+
+        function loadCurrentQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletion();
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            const currentQuestionEl = document.getElementById('currentQuestion');
+            const questionTextEl = document.getElementById('questionText');
+            const questionHintEl = document.getElementById('questionHint');
+            const questionNumEl = document.getElementById('questionNum');
+            const totalQuestionsEl = document.getElementById('totalQuestions');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (currentQuestionEl) currentQuestionEl.textContent = `${question.level}: ${question.title}`;
+            if (questionTextEl) questionTextEl.textContent = question.text;
+            if (questionHintEl) {
+                questionHintEl.textContent = question.hint;
+                questionHintEl.style.display = 'none';
+            }
+            if (questionNumEl) questionNumEl.textContent = currentQuestionIndex + 1;
+            if (totalQuestionsEl) totalQuestionsEl.textContent = questions.length;
+            if (nextBtn) nextBtn.style.display = 'none';
+            
+            if (!userSolutions[currentQuestionIndex]) {
+                userSolutions[currentQuestionIndex] = {
+                    commands: [],
+                    completed: false
+                };
+            }
+            
+            // Show question info in output
+            addOutput(`\n=== Question ${currentQuestionIndex + 1} of ${questions.length} ===`, 'success');
+            addOutput(`${question.level} Level: ${question.title}`, 'success');
+            addOutput(`${question.text}`, 'success');
+            addOutput(''); // Empty line
+        }
+
+        function showHint() {
+            const questionHint = document.getElementById('questionHint');
+            if (questionHint) {
+                questionHint.style.display = 'block';
+            }
+        }
+
+        function checkAnswer() {
+            const question = questions[currentQuestionIndex];
+            const solution = userSolutions[currentQuestionIndex];
+            
+            if (!solution || solution.commands.length === 0) {
+                addOutput("❌ No commands executed yet! Try running some etcd commands first.", 'error');
+                return;
+            }
+            
+            const isCorrect = question.validation(solution.commands, etcdStore);
+            
+            if (isCorrect) {
+                addOutput("🎉 Excellent! You've successfully completed this challenge!", 'success');
+                addOutput(`✅ Question ${currentQuestionIndex + 1}: ${question.title} - COMPLETED`, 'success');
+                solution.completed = true;
+                
+                const nextBtn = document.getElementById('nextBtn');
+                if (nextBtn) {
+                    nextBtn.style.display = 'inline-block';
+                }
+                
+                updateStatus('Question completed!', 'success');
+                
+                if (currentQuestionIndex < questions.length - 1) {
+                    addOutput("✨ Great! Moving to the next question in 3 seconds...", 'success');
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 3000);
+                }
+            } else {
+                addOutput("❌ Not quite right. Check the hint and try again!", 'error');
+                addOutput("Make sure you're following all the requirements in the question.", 'warning');
+                updateStatus('Try again', 'error');
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadCurrentQuestion();
+                updateStatus(`Question ${currentQuestionIndex + 1} loaded`, 'success');
+            } else {
+                showCompletion();
+            }
+        }
+
+        function skipQuestion() {
+            addOutput(`⏭️ Skipping Question ${currentQuestionIndex + 1}`, 'warning');
+            userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+            nextQuestion();
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            userSolutions = [];
+            etcdStore.clear();
+            watchers.clear();
+            leases.clear();
+            clearOutput();
+            addOutput("Quiz reset! Starting from Question 1...\n", 'warning');
+            loadCurrentQuestion();
+            updateStatus('Quiz reset', 'warning');
+        }
+
+        function showCompletion() {
+            const completedCount = userSolutions.filter(s => s && s.completed).length;
+            addOutput(`\n🎊 QUIZ COMPLETED! 🎊`, 'success');
+            addOutput(`You completed ${completedCount} out of ${questions.length} questions.`, 'success');
+            
+            if (completedCount === questions.length) {
+                addOutput(`🏆 Perfect score! You've mastered etcd basics!`, 'success');
+            } else if (completedCount >= questions.length * 0.7) {
+                addOutput(`👍 Great job! You have a solid understanding of etcd.`, 'success');
+            } else {
+                addOutput(`📚 Good effort! Review the concepts and try again for better mastery.`, 'warning');
+            }
+            
+            addOutput(`Feel free to continue practicing in Free Practice mode!`, 'success');
+            updateStatus('Quiz completed!', 'success');
+        }
+
+        // Initialize everything when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded - Initializing course...');
+            
+            // Initialize diagrams with a slight delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeDiagrams();
+            }, 100);
+            
+            // Initialize status
+            updateStatus('Ready');
+            
+            // Initialize with welcome message in practice lab
+            const output = document.getElementById('output');
+            if (output) {
+                output.innerHTML = `Welcome to etcd Practice Lab! 🚀
+
+Try these commands to get started:
+• etcd put /config/app/name "MyApp"
+• etcd get /config/app/name  
+• etcd get /config/ --prefix
+• etcd del /config/app/name
+
+Current etcd store is empty. Start adding some data!
+`;
+            }
+            
+            console.log('Course initialization complete');
+        });
+
+        // Add window load event as backup
+        window.addEventListener('load', function() {
+            console.log('Window loaded - ensuring diagrams are created...');
+            setTimeout(() => {
+                if (document.getElementById('clusterDiagram') && !document.querySelector('#clusterDiagram g')) {
+                    console.log('Re-initializing diagrams...');
+                    initializeDiagrams();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
