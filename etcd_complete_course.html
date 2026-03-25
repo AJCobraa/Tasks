@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>etcd Mastery Course</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .course-container { max-width: 1400px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 2rem; }
+        .navigation { background: #34495e; padding: 0; display: flex; overflow-x: auto; }
+        .nav-tab { padding: 15px 25px; background: transparent; border: none; color: #bdc3c7; cursor: pointer; transition: all 0.3s; font-weight: 500; white-space: nowrap; position: relative; }
+        .nav-tab:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-tab.active { color: white; background: rgba(52,152,219,0.3); }
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .page { display: none; flex: 1; animation: fadeIn 0.5s; }
+        .page.active { display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Practice Lab Styles */
+        .practice-content { display: grid; grid-template-columns: 1fr 1fr; height: 100%; }
+        .theory-panel { background: #f8f9fa; padding: 30px; border-right: 3px solid #e9ecef; overflow-y: auto; }
+        .practice-panel { padding: 30px; display: flex; flex-direction: column; }
+        .section { margin-bottom: 30px; }
+        .section h3 { color: #2c3e50; font-size: 1.3rem; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #3498db; }
+        .operation-card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid #3498db; }
+        .operation-card h4 { color: #2c3e50; margin-bottom: 10px; font-size: 1.1rem; }
+        .code { background: #2c3e50; color: #ecf0f1; padding: 12px 15px; border-radius: 6px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; margin: 8px 0; font-size: 0.9rem; overflow-x: auto; }
+        
+        .mode-toggle { display: flex; gap: 5px; margin-bottom: 20px; background: #ecf0f1; padding: 5px; border-radius: 25px; }
+        .mode-btn { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.3s; background: transparent; color: #7f8c8d; }
+        .mode-btn.active { background: #3498db; color: white; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(52,152,219,0.3); }
+        
+        .quick-commands { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .quick-btn { background: #95a5a6; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.3s; }
+        .quick-btn:hover { background: #7f8c8d; transform: translateY(-1px); }
+        
+        .command-input { display: flex; margin-bottom: 20px; }
+        .command-input input { flex-grow: 1; padding: 12px 15px; border: 2px solid #bdc3c7; border-radius: 8px 0 0 8px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 1rem; outline: none; }
+        .command-input input:focus { border-color: #3498db; }
+        .command-input button { padding: 12px 20px; background: #3498db; color: white; border: none; border-radius: 0 8px 8px 0; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .command-input button:hover { background: #2980b9; transform: translateY(-1px); }
+        
+        .output-area { background: #2c3e50; color: #2ecc71; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; padding: 20px; border-radius: 8px; overflow-y: auto; min-height: 300px; white-space: pre-wrap; line-height: 1.4; }
+        
+        .status-bar { background: #34495e; color: white; padding: 15px 30px; text-align: center; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; }
+        
+        .quiz-section { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 2px solid #3498db; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .quiz-header h4 { color: #2c3e50; margin: 0; }
+        .quiz-progress { background: #3498db; color: white; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; }
+        .quiz-content p { margin-bottom: 15px; line-height: 1.6; }
+        .hint { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 6px; margin: 10px 0; font-style: italic; }
+        .quiz-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .quiz-actions button { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .hint-btn { background: #f39c12; color: white; }
+        .hint-btn:hover { background: #e67e22; }
+        .check-btn { background: #27ae60; color: white; }
+        .check-btn:hover { background: #229954; }
+        .next-btn { background: #3498db; color: white; }
+        .next-btn:hover { background: #2980b9; }
+        .skip-btn { background: #95a5a6; color: white; }
+        .skip-btn:hover { background: #7f8c8d; }
+        .reset-btn { background: #e74c3c; color: white; }
+        .reset-btn:hover { background: #c0392b; }
+        
+        .error { color: #e74c3c; }
+        .success { color: #2ecc71; }
+        .warning { color: #f39c12; }
+        
+        /* Theory sidebar styles */
+        .theory-nav { list-style: none; }
+        .theory-nav li { margin-bottom: 8px; }
+        .theory-nav a { color: #7f8c8d; text-decoration: none; padding: 8px 12px; border-radius: 6px; display: block; transition: all 0.3s; font-size: 0.9rem; }
+        .theory-nav a:hover, .theory-nav a.active { background: #3498db; color: white; }
+        
+        /* Diagram styles */
+        .diagram-container { background: white; border-radius: 15px; padding: 30px; margin: 30px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .diagram-title { color: #2c3e50; font-size: 1.3rem; margin-bottom: 20px; }
+        .diagram-svg { width: 100%; max-width: 600px; height: 300px; margin: 0 auto; }
+        .diagram-controls { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .diagram-btn { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; }
+        .diagram-btn:hover { background: #2980b9; transform: translateY(-1px); }
+        .diagram-btn.active { background: #2ecc71; }
+    </style>
+</head>
+<body>
+    <div class="course-container">
+        <div class="header">
+            <h1>🗄️ etcd Mastery Course</h1>
+        </div>
+        <nav class="navigation">
+            <button class="nav-tab active" onclick="showPage('overview')">📚 Course Overview</button>
+            <button class="nav-tab" onclick="showPage('theory')">🧠 Theory & Concepts</button>
+            <button class="nav-tab" onclick="showPage('architecture')">🏗️ Architecture</button>
+            <button class="nav-tab" onclick="showPage('usecases')">🎯 Real-world Use Cases</button>
+            <button class="nav-tab" onclick="showPage('practice')">🛠️ Practice Lab</button>
+            <button class="nav-tab" onclick="showPage('advanced')">⚡ Advanced Topics</button>
+        </nav>
+        <div class="main-content">
+            <div id="overview" class="page active">
+                <div style="padding: 40px;">
+                    <h2>Course Overview</h2>
+                    <p>Welcome to the etcd Mastery Course! Use the navigation above to explore modules.</p>
+                </div>
+            </div>
+            <div id="theory" class="page">
+                <div style="display: flex; height: 100%;">
+                    <div style="width: 250px; background: #f8f9fa; border-right: 2px solid #e9ecef; padding: 20px;">
+                        <h3>Course Topics</h3>
+                        <ul class="theory-nav">
+                            <li><a href="#" data-section="intro">What is etcd?</a></li>
+                            <li><a href="#" data-section="keyvalue">Key-Value Store Basics</a></li>
+                            <li><a href="#" data-section="consistency">Consistency & CAP Theorem</a></li>
+                            <li><a href="#" data-section="raft">Raft Consensus Algorithm</a></li>
+                            <li><a href="#" data-section="operations">Core Operations</a></li>
+                            <li><a href="#" data-section="watch">Watch & Notifications</a></li>
+                            <li><a href="#" data-section="ttl">TTL & Leases</a></li>
+                            <li><a href="#" data-section="clustering">Clustering</a></li>
+                        </ul>
+                    </div>
+                    <div style="flex: 1; padding: 40px;">
+                        <div id="intro" class="theory-section active"></div>
+                        <div id="keyvalue" class="theory-section" style="display:none;"></div>
+                        <div id="consistency" class="theory-section" style="display:none;"></div>
+                        <div id="raft" class="theory-section" style="display:none;"></div>
+                        <div id="operations" class="theory-section" style="display:none;"></div>
+                        <div id="watch" class="theory-section" style="display:none;"></div>
+                        <div id="ttl" class="theory-section" style="display:none;"></div>
+                        <div id="clustering" class="theory-section" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="architecture" class="page">
+                <div style="padding: 40px;">
+                    <h2>Architecture Deep Dive</h2>
+                    <div class="diagram-container">
+                        <h3 class="diagram-title">Interactive etcd Cluster Topology</h3>
+                        <svg class="diagram-svg" id="clusterDiagram" viewBox="0 0 600 300"></svg>
+                        <div class="diagram-controls">
+                            <button class="diagram-btn" id="showNormal">Normal Operation</button>
+                            <button class="diagram-btn" id="showFailure">Node Failure</button>
+                            <button class="diagram-btn" id="showElection">Leader Election</button>
+                            <button class="diagram-btn" id="showRecovery">Recovery</button>
+                        </div>
+                    </div>
+                    <div class="diagram-container">
+                        <h3 class="diagram-title">Data Flow Architecture</h3>
+                        <svg class="diagram-svg" id="dataFlowDiagram" viewBox="0 0 600 400"></svg>
+                        <div class="diagram-controls">
+                            <button class="diagram-btn" onclick="animateDataFlow('write')">Write Operation</button>
+                            <button class="diagram-btn" onclick="animateDataFlow('read')">Read Operation</button>
+                            <button class="diagram-btn" onclick="animateDataFlow('watch')">Watch Notification</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="usecases" class="page">
+                <div style="padding: 40px;">
+                    <h2>Real-world Use Cases</h2>
+                    <div class="output-area">Use case scenarios and code examples go here.</div>
+                </div>
+            </div>
+            <div id="practice" class="page">
+                <div class="practice-content">
+                    <div class="theory-panel">
+                        <div class="section">
+                            <h3>🔑 Basic Operations</h3>
+                            <div class="operation-card">
+                                <h4>PUT - Store Key-Value Pairs</h4>
+                                <p>Store data in etcd with a key-value pair.</p>
+                                <div class="code">etcd put /config/app/name "MyApp"</div>
+                                <div class="code">etcd put /users/1 "John Doe"</div>
+                            </div>
+                            <div class="operation-card">
+                                <h4>GET - Retrieve Data</h4>
+                                <p>Get values by key or with prefix matching.</p>
+                                <div class="code">etcd get /config/app/name</div>
+                                <div class="code">etcd get /config/ --prefix</div>
+                            </div>
+                            <div class="operation-card">
+                                <h4>DEL - Delete Keys</h4>
+                                <p>Remove keys from the store.</p>
+                                <div class="code">etcd del /config/app/name</div>
+                                <div class="code">etcd del /config/ --prefix</div>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <h3>🔔 Advanced Features</h3>
+                            <div class="operation-card">
+                                <h4>WATCH - Real-time Notifications</h4>
+                                <p>Subscribe to changes in etcd.</p>
+                                <div class="code">etcd watch /config/app/name</div>
+                                <div class="code">etcd watch /config/ --prefix</div>
+                            </div>
+                            <div class="operation-card">
+                                <h4>TTL - Time To Live</h4>
+                                <p>Set expiration time for keys.</p>
+                                <div class="code">etcd put /session/abc123 "active" --ttl=60</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="practice-panel">
+                        <div class="mode-toggle">
+                            <button id="practiceBtn" class="mode-btn active" onclick="setMode('practice')">🛠️ Free Practice</button>
+                            <button id="quizBtn" class="mode-btn" onclick="setMode('quiz')">❓ Guided Questions</button>
+                        </div>
+                        
+                        <div class="quick-commands">
+                            <button class="quick-btn" onclick="insertCommand('etcd put /config/app/name MyApp')">Sample PUT</button>
+                            <button class="quick-btn" onclick="insertCommand('etcd get /config/app/name')">Sample GET</button>
+                            <button class="quick-btn" onclick="insertCommand('etcd get /config/ --prefix')">GET Prefix</button>
+                            <button class="quick-btn" onclick="insertCommand('etcd del /config/app/name')">Sample DEL</button>
+                            <button class="quick-btn" onclick="insertCommand('etcd watch /config/app/name')">Sample WATCH</button>
+                            <button class="quick-btn" onclick="clearOutput()">Clear Output</button>
+                        </div>
+
+                        <div class="command-input">
+                            <input type="text" id="commandInput" placeholder="Enter etcd command (e.g., etcd put /key value)" onkeypress="handleKeyPress(event)">
+                            <button onclick="executeCommand()">Execute</button>
+                        </div>
+                        
+                        <div class="output-area" id="output">Welcome to etcd Practice Lab! 🚀
+
+Try these commands to get started:
+• etcd put /config/app/name "MyApp"
+• etcd get /config/app/name  
+• etcd get /config/ --prefix
+• etcd del /config/app/name
+
+Current etcd store is empty. Start adding some data!
+                        </div>
+                        
+                        <div id="quizSection" style="display:none;margin-top:20px;">
+                            <div class="quiz-section">
+                                <div class="quiz-header">
+                                    <h4 id="currentQuestion">Loading...</h4>
+                                    <div class="quiz-progress">Question <span id="questionNum">1</span> of <span id="totalQuestions">3</span></div>
+                                </div>
+                                <div class="quiz-content">
+                                    <p id="questionText">Loading...</p>
+                                    <div id="questionHint" class="hint" style="display: none;"></div>
+                                    <div class="quiz-actions">
+                                        <button onclick="showHint()" class="hint-btn">💡 Hint</button>
+                                        <button onclick="checkAnswer()" class="check-btn">✅ Check My Solution</button>
+                                        <button onclick="nextQuestion()" class="next-btn" id="nextBtn" style="display: none;">Next Question ➡️</button>
+                                        <button onclick="skipQuestion()" class="skip-btn">⏭️ Skip Question</button>
+                                        <button onclick="resetQuiz()" class="reset-btn">🔄 Restart Quiz</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <span>etcd v3.5.x Simulator | Keys in store: <span id="keyCount">0</span> | Status: <span id="status">Ready</span></span>
+                </div>
+            </div>
+            <div id="advanced" class="page">
+                <div style="padding: 40px;">
+                    <h2>Advanced Topics</h2>
+                    <div class="output-area">Security, performance, and operational best practices go here.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Simulated etcd store and variables
+        let etcdStore = new Map();
+        let watchers = new Map();
+        let leases = new Map();
+        let leaseCounter = 1000;
+        let currentMode = 'practice';
+        let currentQuestionIndex = 0;
+        let userSolutions = [];
+
+        const questions = [
+            {
+                level: "Beginner",
+                title: "Store and Retrieve Personal Data",
+                text: "Store your name with the key '/user/name' and then retrieve it to verify it was stored correctly.",
+                hint: "Use 'etcd put /user/name \"YourName\"' to store, then 'etcd get /user/name' to retrieve.",
+                expectedCommands: ["put", "get"],
+                expectedKeys: ["/user/name"],
+                validation: (commands, store) => {
+                    return commands.some(cmd => cmd.includes("put") && cmd.includes("/user/name")) &&
+                           commands.some(cmd => cmd.includes("get") && cmd.includes("/user/name")) &&
+                           store.has("/user/name");
+                }
+            },
+            {
+                level: "Intermediate",
+                title: "Configuration Management",
+                text: "Create a configuration structure with multiple keys under '/config/app/' and retrieve all config keys at once.",
+                hint: "Use 'etcd put /config/app/name \"MyApp\"' and similar commands, then 'etcd get /config/ --prefix' to get all.",
+                expectedCommands: ["put", "get"],
+                expectedKeys: ["/config/app/"],
+                validation: (commands, store) => {
+                    const hasConfigPuts = commands.some(cmd => cmd.includes("put") && cmd.includes("/config/app/"));
+                    const hasPrefixGet = commands.some(cmd => cmd.includes("get") && cmd.includes("--prefix"));
+                    return hasConfigPuts && hasPrefixGet;
+                }
+            },
+            {
+                level: "Advanced",
+                title: "Dynamic Service Discovery",
+                text: "Create a service registry where services register themselves with health info: '/registry/service-a/health', '/registry/service-b/health'. Set TTL for auto-cleanup and use watch to monitor service health.",
+                hint: "Combine service registration with TTL for health checks and use watch to monitor the '/registry/' prefix for changes.",
+                expectedCommands: ["put", "watch"],
+                expectedKeys: ["/registry/service-a/health", "/registry/service-b/health"],
+                validation: (commands, store) => {
+                    const hasRegistration = commands.some(cmd => cmd.includes("put") && cmd.includes("/registry/"));
+                    const hasWatch = commands.some(cmd => cmd.includes("watch") && cmd.includes("/registry/"));
+                    return hasRegistration && hasWatch;
+                }
+            }
+        ];
+
+        // Navigation functions
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            const pageEl = document.getElementById(pageId);
+            if (pageEl) pageEl.classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            const tabMap = {
+                'overview': 0,
+                'theory': 1,
+                'architecture': 2,
+                'usecases': 3,
+                'practice': 4,
+                'advanced': 5
+            };
+            const tabIndex = tabMap[pageId];
+            if (typeof tabIndex !== 'undefined') {
+                document.querySelectorAll('.nav-tab')[tabIndex].classList.add('active');
+            }
+        }
+
+        // 1. Move all main functions to the top level and attach to window
+        function showTheorySection(sectionId, event) {
+            // Hide all sections
+            document.querySelectorAll('.theory-section').forEach(section => {
+                section.style.display = 'none';
+                section.classList.remove('active');
+            });
+            // Show the selected section
+            const sectionEl = document.getElementById(sectionId);
+            if (sectionEl) {
+                sectionEl.style.display = '';
+                sectionEl.classList.add('active');
+            }
+            // Remove 'active' from all sidebar links
+            document.querySelectorAll('.theory-nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            // Add 'active' to the clicked link
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+        window.showTheorySection = showTheorySection;
+
+        function executeTheoryCommand(inputId, outputId) {
+            const input = document.getElementById(inputId);
+            const output = document.getElementById(outputId);
+            if (!input || !output) return;
+            const command = input.value.trim();
+            if (!command) return;
+            output.innerHTML += `<div style="color: #f39c12;">$ ${command}</div>`;
+            try {
+                const { command: cmd, args, flags } = parseCommand(command);
+                let result = '';
+                switch (cmd.toLowerCase()) {
+                    case 'put':
+                        if (args.length < 2) throw new Error('PUT requires key and value');
+                        const key = args[0];
+                        const value = args.slice(1).join(' ').replace(/^"|"$/g, '');
+                        etcdStore.set(key, value);
+                        result = `OK`;
+                        break;
+                    case 'get':
+                        if (args.length < 1) throw new Error('GET requires a key');
+                        const getKey = args[0];
+                        if (flags.prefix) {
+                            let found = false;
+                            for (let k of etcdStore.keys()) {
+                                if (k.startsWith(getKey)) {
+                                    result += `${k}\n${etcdStore.get(k)}\n`;
+                                    found = true;
+                                }
+                            }
+                            if (!found) result = 'No keys found with prefix.';
+                        } else {
+                            if (etcdStore.has(getKey)) {
+                                result = etcdStore.get(getKey);
+                            } else {
+                                result = 'Key not found.';
+                            }
+                        }
+                        break;
+                    case 'del':
+                    case 'delete':
+                        if (args.length < 1) throw new Error('DEL requires a key');
+                        const delKey = args[0];
+                        if (flags.prefix) {
+                            let count = 0;
+                            for (let k of Array.from(etcdStore.keys())) {
+                                if (k.startsWith(delKey)) {
+                                    etcdStore.delete(k);
+                                    count++;
+                                }
+                            }
+                            result = `${count}`;
+                        } else {
+                            if (etcdStore.delete(delKey)) {
+                                result = `1`;
+                            } else {
+                                result = `0`;
+                            }
+                        }
+                        break;
+                    case 'watch':
+                        if (args.length < 1) throw new Error('WATCH requires a key');
+                        const watchKey = args[0];
+                        const watchId = Math.random().toString(36).substr(2, 9);
+                        if (!watchers.has(watchKey)) watchers.set(watchKey, []);
+                        watchers.get(watchKey).push({ id: watchId, prefix: flags.prefix || false });
+                        result = `Started watching: ${watchKey}\nWatch ID: ${watchId}`;
+                        break;
+                    default:
+                        throw new Error(`Unknown command: ${cmd}`);
+                }
+                output.innerHTML += `<div style=\"color: #2ecc71;\">${result}</div>`;
+            } catch (error) {
+                output.innerHTML += `<div style=\"color: #e74c3c;\">Error: ${error.message}</div>`;
+            }
+            input.value = '';
+            output.scrollTop = output.scrollHeight;
+        }
+        window.executeTheoryCommand = executeTheoryCommand;
+
+        function renderTheoryContent() {
+            // What is etcd?
+            document.getElementById('intro').innerHTML = `
+                <h2>What is etcd?</h2>
+                <p><b>etcd</b> is a distributed, reliable key-value store for critical data in distributed systems. It is used for service discovery, configuration, and coordination of distributed systems like Kubernetes.</p>
+                <div style='margin:20px 0;'>
+                    <svg width='320' height='80'>
+                        <rect x='10' y='10' width='90' height='60' fill='#3498db' rx='10'/>
+                        <rect x='115' y='10' width='90' height='60' fill='#2ecc71' rx='10'/>
+                        <rect x='220' y='10' width='90' height='60' fill='#f39c12' rx='10'/>
+                        <text x='55' y='45' fill='white' font-size='16' text-anchor='middle'>Node 1</text>
+                        <text x='160' y='45' fill='white' font-size='16' text-anchor='middle'>Node 2</text>
+                        <text x='265' y='45' fill='white' font-size='16' text-anchor='middle'>Node 3</text>
+                    </svg>
+                    <div style='font-size:0.95em;margin-top:8px;'>
+                        <b>Diagram:</b> etcd cluster with 3 nodes (all keep data in sync)
+                    </div>
+                </div>
+                <div class='code'>
+# Example: Service Discovery
+etcd put /services/api/node1 "10.0.0.1:8080"
+etcd get /services/api/ --prefix
+                </div>
+                <h3>🎯 Practice Exercise: Service Discovery</h3>
+                <div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'>
+                    <p><b>Objective:</b> Learn how etcd is used for service discovery.</p>
+                    <p><b>Steps:</b></p>
+                    <ol>
+                        <li>Register a web service: <code>etcd put /services/web/node1 "192.168.1.10:8080"</code></li>
+                        <li>Register another service: <code>etcd put /services/web/node2 "192.168.1.11:8080"</code></li>
+                        <li>Register a database service: <code>etcd put /services/db/primary "192.168.1.20:5432"</code></li>
+                        <li>Discover all web services: <code>etcd get /services/web/ --prefix</code></li>
+                        <li>Discover all services: <code>etcd get /services/ --prefix</code></li>
+                    </ol>
+                    <div style='margin-top:10px;'>
+                        <div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'>
+                            <span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span>
+                            <input type='text' id='intro-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'>
+                            <button onclick='executeTheoryCommand("intro-cmd", "intro-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button>
+                        </div>
+                    </div>
+                    <div id='intro-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div>
+                </div>
+            `;
+            // Key-Value Store Basics
+            document.getElementById('keyvalue').innerHTML = `<h2>Key-Value Store Basics</h2><p>etcd stores data as <b>key-value pairs</b>. Keys are like file paths, and values are strings. You can organize data hierarchically using slashes.</p><div class='code'>/config/app/name      →   "MyApp"<br>/config/app/port      →   "8080"<br>/services/api/node1   →   "10.0.0.1:8080"</div><div style='margin:20px 0;'><svg width='320' height='80'><rect x='10' y='30' width='300' height='30' fill='#ecf0f1' rx='8'/><text x='160' y='50' fill='#2c3e50' font-size='16' text-anchor='middle'>/config/app/name → "MyApp"</text></svg><div style='font-size:0.95em;margin-top:8px;'><b>Diagram:</b> Key-value mapping in etcd</div></div><div class='code'># List all config keys<br>etcd get /config/ --prefix</div><h3>🎯 Practice Exercise: Hierarchical Keys</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> Understand hierarchical key organization.</p><p><b>Steps:</b></p><ol><li>Create app config: <code>etcd put /config/app/name "MyApp"</code></li><li>Add app port: <code>etcd put /config/app/port "8080"</code></li><li>Add database config: <code>etcd put /config/db/host "localhost"</code></li><li>Add database port: <code>etcd put /config/db/port "5432"</code></li><li>List all app config: <code>etcd get /config/app/ --prefix</code></li><li>List all database config: <code>etcd get /config/db/ --prefix</code></li><li>List all config: <code>etcd get /config/ --prefix</code></li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='keyvalue-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("keyvalue-cmd", "keyvalue-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='keyvalue-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+            // Consistency & CAP Theorem
+            document.getElementById('consistency').innerHTML = `<h2>Consistency & CAP Theorem</h2><p>The <b>CAP theorem</b> says a distributed system can only guarantee two of three: <b>Consistency</b>, <b>Availability</b>, <b>Partition Tolerance</b>.</p><div style='margin:20px 0;'><svg width='200' height='180'><polygon points='100,20 180,150 20,150' fill='#f1c40f' stroke='#34495e' stroke-width='3'/><text x='100' y='40' text-anchor='middle' font-size='16' fill='#34495e'>Consistency</text><text x='40' y='140' text-anchor='middle' font-size='16' fill='#34495e'>Partition</text><text x='160' y='140' text-anchor='middle' font-size='16' fill='#34495e'>Availability</text></svg><div style='font-size:0.95em;margin-top:8px;'><b>Diagram:</b> CAP Theorem Triangle (etcd chooses Consistency + Partition Tolerance)</div></div><div class='code'># etcd is CP (Consistency + Partition Tolerance)<br>etcd put /config/version "1.2.3"<br>etcd get /config/version</div><div style='margin-top:10px;font-size:0.95em;'><b>Analogy:</b> Like a group chat: if the network splits, you can either stop sending messages (Consistency) or allow messages that might not reach everyone (Availability).</div><h3>🎯 Practice Exercise: Understanding Consistency</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> See how etcd ensures consistency across operations.</p><p><b>Steps:</b></p><ol><li>Set a critical config: <code>etcd put /config/critical/flag "enabled"</code></li><li>Verify it's set: <code>etcd get /config/critical/flag</code></li><li>Update the config: <code>etcd put /config/critical/flag "disabled"</code></li><li>Verify the update: <code>etcd get /config/critical/flag</code></li><li>Notice: The value is immediately consistent across all reads</li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='consistency-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("consistency-cmd", "consistency-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='consistency-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+            // Raft Consensus Algorithm
+            document.getElementById('raft').innerHTML = `<h2>Raft Consensus Algorithm</h2><p>etcd uses <b>Raft</b> to keep all nodes in sync. Raft elects a leader, and all writes go through the leader. If the leader fails, a new one is elected.</p><div style='margin:20px 0;'><svg width='320' height='100'><circle cx='60' cy='50' r='30' fill='#2ecc71'/><text x='60' y='55' fill='white' font-size='16' text-anchor='middle'>Leader</text><circle cx='180' cy='50' r='30' fill='#3498db'/><text x='180' y='55' fill='white' font-size='16' text-anchor='middle'>Follower</text><circle cx='300' cy='50' r='30' fill='#3498db'/><text x='300' y='55' fill='white' font-size='16' text-anchor='middle'>Follower</text><polyline points='90,50 150,50' stroke='#34495e' stroke-width='3' marker-end='url(#arrowhead)'/><polyline points='210,50 270,50' stroke='#34495e' stroke-width='3' marker-end='url(#arrowhead)'/><defs><marker id='arrowhead' markerWidth='10' markerHeight='7' refX='10' refY='3.5' orient='auto'><polygon points='0 0, 10 3.5, 0 7' fill='#34495e'/></marker></defs></svg><div style='font-size:0.95em;margin-top:8px;'><b>Diagram:</b> Raft: Leader replicates to followers</div></div><div class='code'># All writes go to the leader<br>etcd put /config/app/name "MyApp"</div><h3>🎯 Practice Exercise: Leader-Based Writes</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> Understand how all writes go through the leader.</p><p><b>Steps:</b></p><ol><li>Write through leader: <code>etcd put /raft/demo "leader-write"</code></li><li>Read from any node: <code>etcd get /raft/demo</code></li><li>Write another value: <code>etcd put /raft/demo "consensus-achieved"</code></li><li>Verify consistency: <code>etcd get /raft/demo</code></li><li>Notice: All writes succeed only if leader replicates to majority</li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='raft-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("raft-cmd", "raft-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='raft-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+            // Core Operations
+            document.getElementById('operations').innerHTML = `<h2>Core Operations</h2><p>etcd supports <b>PUT</b> (store), <b>GET</b> (retrieve), <b>DEL</b> (delete), and <b>WATCH</b> (subscribe to changes).</p><div class='code'># Store a value<br>etcd put /config/app/name "MyApp"<br># Retrieve a value<br>etcd get /config/app/name<br># Delete a value<br>etcd del /config/app/name<br># Watch for changes<br>etcd watch /config/app/name</div><h3>🎯 Practice Exercise: CRUD Operations</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> Master the four core operations.</p><p><b>Steps:</b></p><ol><li><b>CREATE:</b> <code>etcd put /exercise/user "John Doe"</code></li><li><b>READ:</b> <code>etcd get /exercise/user</code></li><li><b>UPDATE:</b> <code>etcd put /exercise/user "Jane Smith"</code></li><li><b>READ again:</b> <code>etcd get /exercise/user</code></li><li><b>DELETE:</b> <code>etcd del /exercise/user</code></li><li><b>Verify deletion:</b> <code>etcd get /exercise/user</code></li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='operations-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("operations-cmd", "operations-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='operations-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+            // Watch & Notifications
+            document.getElementById('watch').innerHTML = `<h2>Watch & Real-time Notifications</h2><p>Applications can <b>watch</b> keys or prefixes and get notified instantly when data changes.</p><div style='margin:20px 0;'><svg width='320' height='80'><rect x='10' y='30' width='90' height='30' fill='#2ecc71' rx='8'/><rect x='120' y='30' width='90' height='30' fill='#3498db' rx='8'/><rect x='230' y='30' width='80' height='30' fill='#f39c12' rx='8'/><text x='55' y='50' fill='white' font-size='16' text-anchor='middle'>App</text><text x='165' y='50' fill='white' font-size='16' text-anchor='middle'>etcd</text><text x='270' y='50' fill='white' font-size='16' text-anchor='middle'>Notify</text></svg><div style='font-size:0.95em;margin-top:8px;'><b>Diagram:</b> App watches etcd, gets notified on changes</div></div><div class='code'># Watch a key<br>etcd watch /config/app/name<br># Watch a prefix<br>etcd watch /config/ --prefix</div><h3>🎯 Practice Exercise: Real-time Monitoring</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> Understand real-time change notifications.</p><p><b>Steps:</b></p><ol><li>Start watching: <code>etcd watch /watch/demo --prefix</code></li><li>In another terminal, make changes:</li><li>Add a key: <code>etcd put /watch/demo/key1 "value1"</code></li><li>Update the key: <code>etcd put /watch/demo/key1 "updated"</code></li><li>Delete the key: <code>etcd del /watch/demo/key1</code></li><li>Notice: Each change triggers a notification</li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='watch-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("watch-cmd", "watch-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='watch-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+            // TTL & Leases
+            document.getElementById('ttl').innerHTML = `<h2>TTL & Leases</h2><p>Keys can have a <b>TTL</b> (Time To Live) and be attached to a <b>lease</b>. When the lease expires, the key is deleted automatically.</p><div class='code'># Create a 60-second lease<br>etcd lease grant 60<br># Attach a key to the lease<br>etcd put /session/abc123 "active" --lease=LEASE_ID</div><div style='margin:20px 0;'><svg width='320' height='80'><rect x='10' y='30' width='140' height='30' fill='#2ecc71' rx='8'/><rect x='170' y='30' width='140' height='30' fill='#e74c3c' rx='8'/><text x='80' y='50' fill='white' font-size='16' text-anchor='middle'>Key with TTL</text><text x='240' y='50' fill='white' font-size='16' text-anchor='middle'>Expires!</text></svg><div style='font-size:0.95em;margin-top:8px;'><b>Diagram:</b> Key expires after TTL</div></div><h3>🎯 Practice Exercise: Automatic Cleanup</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> Learn about automatic key expiration.</p><p><b>Steps:</b></p><ol><li>Create a session key: <code>etcd put /session/user123 "logged-in" --ttl=30</code></li><li>Verify it exists: <code>etcd get /session/user123</code></li><li>Wait 30 seconds...</li><li>Check if expired: <code>etcd get /session/user123</code></li><li>Create a temporary cache: <code>etcd put /cache/data "temp-data" --ttl=60</code></li><li>List all session keys: <code>etcd get /session/ --prefix</code></li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='ttl-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("ttl-cmd", "ttl-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='ttl-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+            // Clustering
+            document.getElementById('clustering').innerHTML = `<h2>etcd Clustering</h2><p>etcd runs as a <b>cluster</b> for high availability. A typical cluster has 3, 5, or 7 nodes. Data is safe as long as a majority of nodes are up.</p><div style='margin:20px 0;'><svg width='320' height='80'><circle cx='60' cy='50' r='30' fill='#2ecc71'/><circle cx='160' cy='50' r='30' fill='#2ecc71'/><circle cx='260' cy='50' r='30' fill='#2ecc71'/><text x='60' y='55' fill='white' font-size='16' text-anchor='middle'>Node 1</text><text x='160' y='55' fill='white' font-size='16' text-anchor='middle'>Node 2</text><text x='260' y='55' fill='white' font-size='16' text-anchor='middle'>Node 3</text></svg><div style='font-size:0.95em;margin-top:8px;'><b>Diagram:</b> 3-node etcd cluster (majority needed for safety)</div></div><div class='code'># Start a 3-node cluster<br>etcd --name node1 ... --initial-cluster node1=...,node2=...,node3=...</div><h3>🎯 Practice Exercise: High Availability</h3><div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;'><p><b>Objective:</b> Understand cluster behavior and quorum.</p><p><b>Steps:</b></p><ol><li>Store critical data: <code>etcd put /cluster/critical "must-survive"</code></li><li>Verify data exists: <code>etcd get /cluster/critical</code></li><li>Simulate node failure (in real cluster, one node would be down)</li><li>Data should still be accessible: <code>etcd get /cluster/critical</code></li><li>Add more critical data: <code>etcd put /cluster/backup "replicated"</code></li><li>List all cluster data: <code>etcd get /cluster/ --prefix</code></li></ol><div style='margin-top:10px;'><div style='display:flex;align-items:center;background:#2c3e50;border-radius:5px;padding:5px;'><span style='color:#f39c12;font-family:monospace;margin-right:10px;'>$</span><input type='text' id='clustering-cmd' placeholder='etcd put /key value' style='flex:1;background:transparent;border:none;color:#2ecc71;font-family:monospace;outline:none;'><button onclick='executeTheoryCommand("clustering-cmd", "clustering-output")' style='margin-left:8px;padding:6px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;'>Run</button></div></div><div id='clustering-output' style='background:#2c3e50;color:#2ecc71;padding:10px;border-radius:5px;margin-top:10px;font-family:monospace;min-height:60px;max-height:200px;overflow-y:auto;'></div></div>`;
+
+            // Explicit mapping from sidebar link text to section ID
+            const sectionMap = {
+              "What is etcd?": "intro",
+              "Key-Value Store Basics": "keyvalue",
+              "Consistency & CAP Theorem": "consistency",
+              "Raft Consensus Algorithm": "raft",
+              "Core Operations": "operations",
+              "Watch & Notifications": "watch",
+              "TTL & Leases": "ttl",
+              "Clustering": "clustering"
+            };
+            document.querySelectorAll('.theory-nav a').forEach(link => {
+              link.onclick = function(event) {
+                event.preventDefault();
+                const sectionId = this.getAttribute('data-section');
+                if (sectionId) showTheorySection(sectionId, event);
+              };
+            });
+            // CLI Enter key and Run button
+            [
+                'intro-cmd',
+                'keyvalue-cmd',
+                'consistency-cmd',
+                'raft-cmd',
+                'operations-cmd',
+                'watch-cmd',
+                'ttl-cmd',
+                'clustering-cmd'
+            ].forEach(function(id) {
+                const input = document.getElementById(id);
+                const outputId = id.replace('-cmd', '-output');
+                if (input) {
+                    input.onkeydown = function(e) {
+                        if (e.key === 'Enter') {
+                            executeTheoryCommand(id, outputId);
+                        }
+                    };
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTheoryContent();
+        });
+
+        // 2. Inside DOMContentLoaded, only set up event listeners and call renderTheoryContent():
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... all your setup code ...
+            renderTheoryContent();
+        });
+
+        // 3. In showTheorySection, call renderTheoryContent() after switching section:
+        function showTheorySection(sectionId, event) {
+            // ... existing code ...
+            renderTheoryContent();
+        }
+
+        // Diagram functions
+        function showClusterState(state) {
+            const svg = document.getElementById('clusterDiagram');
+            if (!svg) return;
+            svg.innerHTML = '';
+            if (state === 'normal') {
+                svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#2ecc71" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                                '<circle cx="300" cy="150" r="40" fill="#2ecc71" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                                '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+            } else if (state === 'failure') {
+                svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#e74c3c" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                                '<circle cx="300" cy="150" r="40" fill="#2ecc71" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                                '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+            } else if (state === 'election') {
+                svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#f39c12" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                                '<circle cx="300" cy="150" r="40" fill="#f39c12" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                                '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+            } else if (state === 'recovery') {
+                svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#2ecc71" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                                '<circle cx="300" cy="150" r="40" fill="#2ecc71" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                                '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+            }
+        }
+
+        function animateDataFlow(type) {
+            const svg = document.getElementById('dataFlowDiagram');
+            if (!svg) return;
+            svg.innerHTML = '';
+            if (type === 'write') {
+                svg.innerHTML = '<rect x="50" y="180" width="500" height="40" fill="#3498db" />' +
+                                '<text x="300" y="205" text-anchor="middle" fill="#fff" font-size="20">Write Path: Client → Leader → Followers</text>';
+            } else if (type === 'read') {
+                svg.innerHTML = '<rect x="50" y="80" width="500" height="40" fill="#2ecc71" />' +
+                                '<text x="300" y="105" text-anchor="middle" fill="#fff" font-size="20">Read Path: Client → Any Node</text>';
+            } else if (type === 'watch') {
+                svg.innerHTML = '<rect x="50" y="280" width="500" height="40" fill="#f39c12" />' +
+                                '<text x="300" y="305" text-anchor="middle" fill="#fff" font-size="20">Watch: Server → Client (Push)</text>';
+            }
+        }
+
+        // Practice Lab functions
+        function addOutput(msg, cls) {
+            const output = document.getElementById('output');
+            if (!output) return;
+            const span = document.createElement('span');
+            if (cls) span.className = cls;
+            span.textContent = msg + '\n';
+            output.appendChild(span);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            const output = document.getElementById('output');
+            if (output) output.innerHTML = '';
+        }
+
+        function updateStatus(msg, cls) {
+            const statusEl = document.getElementById('status');
+            if (statusEl) {
+                statusEl.textContent = msg;
+                statusEl.className = cls || '';
+            }
+        }
+
+        function updateKeyCount() {
+            const keyCountEl = document.getElementById('keyCount');
+            if (keyCountEl) {
+                keyCountEl.textContent = etcdStore.size;
+            }
+        }
+
+        function parseCommand(input) {
+            const parts = input.trim().split(/\s+/);
+            let command = parts[0];
+            const args = [];
+            const flags = {};
+            
+            // Handle both "etcd put" and "put" formats
+            if (command.toLowerCase() === 'etcd') {
+                if (parts.length < 2) throw new Error('Command requires an operation (put, get, del, watch)');
+                command = parts[1];
+                for (let i = 2; i < parts.length; i++) {
+                    if (parts[i].startsWith('--')) {
+                        const [flag, val] = parts[i].substring(2).split('=');
+                        flags[flag] = val === undefined ? true : val;
+                    } else {
+                        args.push(parts[i]);
+                    }
+                }
+            } else {
+                // Handle direct command format (put, get, del, watch)
+                for (let i = 1; i < parts.length; i++) {
+                    if (parts[i].startsWith('--')) {
+                        const [flag, val] = parts[i].substring(2).split('=');
+                        flags[flag] = val === undefined ? true : val;
+                    } else {
+                        args.push(parts[i]);
+                    }
+                }
+            }
+            
+            return { command, args, flags };
+        }
+
+        function executePut(args, flags) {
+            if (args.length < 2) throw new Error('PUT requires key and value');
+            const key = args[0];
+            const value = args.slice(1).join(' ').replace(/^"|"$/g, '');
+            etcdStore.set(key, value);
+            addOutput(`OK: Set ${key} = ${value}`, 'success');
+            triggerWatchers(key, 'PUT', value);
+            updateKeyCount();
+            updateStatus('PUT success', 'success');
+        }
+
+        function executeGet(args, flags) {
+            if (args.length < 1) throw new Error('GET requires a key');
+            const key = args[0];
+            if (flags.prefix) {
+                let found = false;
+                for (let k of etcdStore.keys()) {
+                    if (k.startsWith(key)) {
+                        addOutput(`${k}: ${etcdStore.get(k)}`);
+                        found = true;
+                    }
+                }
+                if (!found) addOutput('No keys found with prefix.');
+            } else {
+                if (etcdStore.has(key)) {
+                    addOutput(etcdStore.get(key));
+                } else {
+                    addOutput('Key not found.');
+                }
+            }
+            updateStatus('GET complete', 'success');
+        }
+
+        function executeDel(args, flags) {
+            if (args.length < 1) throw new Error('DEL requires a key');
+            const key = args[0];
+            if (flags.prefix) {
+                let count = 0;
+                for (let k of Array.from(etcdStore.keys())) {
+                    if (k.startsWith(key)) {
+                        etcdStore.delete(k);
+                        count++;
+                    }
+                }
+                addOutput(`Deleted ${count} keys with prefix ${key}`);
+            } else {
+                if (etcdStore.delete(key)) {
+                    addOutput(`Deleted ${key}`);
+                } else {
+                    addOutput('Key not found.');
+                }
+            }
+            triggerWatchers(key, 'DEL', null);
+            updateKeyCount();
+            updateStatus('DEL complete', 'success');
+        }
+
+        function executeWatch(args, flags) {
+            if (args.length < 1) throw new Error('WATCH requires a key');
+            const key = args[0];
+            const watchId = Math.random().toString(36).substr(2, 9);
+            if (!watchers.has(key)) watchers.set(key, []);
+            watchers.get(key).push({ id: watchId, prefix: flags.prefix || false });
+            addOutput(`Started watching: ${key}`, 'success');
+            if (flags.prefix) addOutput('Watching with prefix matching', 'success');
+            addOutput(`Watch ID: ${watchId}`);
+            addOutput('(Changes will appear here automatically)');
+            updateStatus('WATCH started', 'success');
+        }
+
+        function triggerWatchers(key, event, value) {
+            for (let [watchKey, watchList] of watchers) {
+                watchList.forEach(watcher => {
+                    let shouldTrigger = false;
+                    if (watcher.prefix && key.startsWith(watchKey)) shouldTrigger = true;
+                    else if (!watcher.prefix && key === watchKey) shouldTrigger = true;
+                    if (shouldTrigger) {
+                        addOutput(`🔔 WATCH EVENT [${watcher.id}]`, 'warning');
+                        addOutput(`Event: ${event}`);
+                        addOutput(`Key: ${key}`);
+                        if (value !== null) addOutput(`Value: ${value}`);
+                        addOutput('---');
+                    }
+                });
+            }
+        }
+
+        function executeCommand() {
+            const input = document.getElementById('commandInput');
+            if (!input) return;
+            const inputText = input.value.trim();
+            if (!inputText) return;
+            addOutput(`$ ${inputText}`);
+            if (currentMode === 'quiz' && currentQuestionIndex < questions.length) {
+                if (!userSolutions[currentQuestionIndex]) userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+                userSolutions[currentQuestionIndex].commands.push(inputText.toLowerCase());
+            }
+            input.value = '';
+            try {
+                const { command, args, flags } = parseCommand(inputText);
+                switch (command.toLowerCase()) {
+                    case 'put': executePut(args, flags); break;
+                    case 'get': executeGet(args, flags); break;
+                    case 'del': case 'delete': executeDel(args, flags); break;
+                    case 'watch': executeWatch(args, flags); break;
+                    default: throw new Error(`Unknown command: ${command}`);
+                }
+            } catch (error) {
+                addOutput(`Error: ${error.message}`, 'error');
+                updateStatus('Command failed', 'error');
+            }
+            addOutput('');
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                executeCommand();
+            }
+        }
+
+        function insertCommand(cmd) {
+            const input = document.getElementById('commandInput');
+            if (input) {
+                input.value = cmd;
+                input.focus();
+            }
+        }
+
+        // Quiz functions
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('practiceBtn').classList.toggle('active', mode === 'practice');
+            document.getElementById('quizBtn').classList.toggle('active', mode === 'quiz');
+            document.getElementById('quizSection').style.display = mode === 'quiz' ? 'block' : 'none';
+            if (mode === 'quiz') {
+                currentQuestionIndex = 0;
+                userSolutions = [];
+                loadCurrentQuestion();
+            }
+        }
+
+        function loadCurrentQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletion();
+                return;
+            }
+            const question = questions[currentQuestionIndex];
+            document.getElementById('currentQuestion').textContent = `${question.level}: ${question.title}`;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('questionHint').textContent = question.hint;
+            document.getElementById('questionHint').style.display = 'none';
+            document.getElementById('questionNum').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            document.getElementById('nextBtn').style.display = 'none';
+            if (!userSolutions[currentQuestionIndex]) {
+                userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+            }
+            addOutput(`\n=== Question ${currentQuestionIndex + 1} of ${questions.length} ===`, 'success');
+            addOutput(`${question.level} Level: ${question.title}`, 'success');
+            addOutput(`${question.text}`, 'success');
+            addOutput('');
+        }
+
+        function showHint() {
+            document.getElementById('questionHint').style.display = 'block';
+        }
+
+        function checkAnswer() {
+            const question = questions[currentQuestionIndex];
+            const solution = userSolutions[currentQuestionIndex];
+            if (!solution || solution.commands.length === 0) {
+                addOutput('❌ No commands executed yet! Try running some etcd commands first.', 'error');
+                return;
+            }
+            const isCorrect = question.validation(solution.commands, etcdStore);
+            if (isCorrect) {
+                addOutput('🎉 Excellent! You\'ve successfully completed this challenge!', 'success');
+                addOutput(`✅ Question ${currentQuestionIndex + 1}: ${question.title} - COMPLETED`, 'success');
+                solution.completed = true;
+                document.getElementById('nextBtn').style.display = 'inline-block';
+                updateStatus('Question completed!', 'success');
+                if (currentQuestionIndex < questions.length - 1) {
+                    addOutput('✨ Great! Moving to the next question in 3 seconds...', 'success');
+                    setTimeout(() => { nextQuestion(); }, 3000);
+                }
+            } else {
+                addOutput('❌ Not quite right. Check the hint and try again!', 'error');
+                addOutput('Make sure you\'re following all the requirements in the question.', 'warning');
+                updateStatus('Try again', 'error');
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadCurrentQuestion();
+                updateStatus(`Question ${currentQuestionIndex + 1} loaded`, 'success');
+            } else {
+                showCompletion();
+            }
+        }
+
+        function skipQuestion() {
+            addOutput(`⏭️ Skipping Question ${currentQuestionIndex + 1}`, 'warning');
+            userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+            nextQuestion();
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            userSolutions = [];
+            etcdStore.clear();
+            watchers.clear();
+            leases.clear();
+            clearOutput();
+            addOutput('Quiz reset! Starting from Question 1...\n', 'warning');
+            loadCurrentQuestion();
+            updateStatus('Quiz reset', 'warning');
+            updateKeyCount();
+        }
+
+        function showCompletion() {
+            const completedCount = userSolutions.filter(s => s && s.completed).length;
+            addOutput(`\n🎊 QUIZ COMPLETED! 🎊`, 'success');
+            addOutput(`You completed ${completedCount} out of ${questions.length} questions.`, 'success');
+            if (completedCount === questions.length) {
+                addOutput('🏆 Perfect score! You\'ve mastered etcd basics!', 'success');
+            } else if (completedCount >= questions.length * 0.7) {
+                addOutput('👍 Great job! You have a solid understanding of etcd.', 'success');
+            } else {
+                addOutput('📚 Good effort! Review the concepts and try again for better mastery.', 'warning');
+            }
+            addOutput('Feel free to continue practicing in Free Practice mode!', 'success');
+            updateStatus('Quiz completed!', 'success');
+        }
+    </script>
+</body>
+</html> 

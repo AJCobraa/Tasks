@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>etcd Mastery Course</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; min-height: 100vh; }
+        .course-container { max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 2rem; }
+        .navigation { background: #34495e; padding: 0; display: flex; overflow-x: auto; }
+        .nav-tab { padding: 15px 25px; background: transparent; border: none; color: #bdc3c7; cursor: pointer; transition: all 0.3s; font-weight: 500; white-space: nowrap; position: relative; }
+        .nav-tab:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-tab.active { color: white; background: rgba(52,152,219,0.3); }
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .page { display: none; flex: 1; animation: fadeIn 0.5s; }
+        .page.active { display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .output-area { background: #2c3e50; color: #2ecc71; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; padding: 20px; border-radius: 8px; overflow-y: auto; min-height: 300px; white-space: pre-wrap; line-height: 1.4; }
+        /* Add more styles for diagrams, quiz, sidebar, etc. as needed */
+    </style>
+</head>
+<body>
+    <div class="course-container">
+        <div class="header">
+            <h1>🗄️ etcd Mastery Course</h1>
+        </div>
+        <nav class="navigation">
+            <button class="nav-tab active" onclick="showPage('overview')">📚 Course Overview</button>
+            <button class="nav-tab" onclick="showPage('theory')">🧠 Theory & Concepts</button>
+            <button class="nav-tab" onclick="showPage('architecture')">🏗️ Architecture</button>
+            <button class="nav-tab" onclick="showPage('usecases')">🎯 Real-world Use Cases</button>
+            <button class="nav-tab" onclick="showPage('practice')">🛠️ Practice Lab</button>
+            <button class="nav-tab" onclick="showPage('advanced')">⚡ Advanced Topics</button>
+        </nav>
+        <div class="main-content">
+            <div id="overview" class="page active">
+                <h2>Course Overview</h2>
+                <p>Welcome to the etcd Mastery Course! Use the navigation above to explore modules.</p>
+            </div>
+            <div id="theory" class="page">
+                <div style="display: flex; height: 100%;">
+                    <div style="width: 250px; background: #f8f9fa; border-right: 2px solid #e9ecef; padding: 20px;">
+                        <h3>Course Topics</h3>
+                        <ul class="theory-nav" style="list-style: none;">
+                            <li><a href="#" onclick="showTheorySection('intro', event)" class="active">What is etcd?</a></li>
+                            <li><a href="#" onclick="showTheorySection('keyvalue', event)">Key-Value Store Basics</a></li>
+                            <li><a href="#" onclick="showTheorySection('consistency', event)">Consistency & CAP Theorem</a></li>
+                            <li><a href="#" onclick="showTheorySection('raft', event)">Raft Consensus Algorithm</a></li>
+                            <li><a href="#" onclick="showTheorySection('operations', event)">Core Operations</a></li>
+                            <li><a href="#" onclick="showTheorySection('watch', event)">Watch & Notifications</a></li>
+                            <li><a href="#" onclick="showTheorySection('ttl', event)">TTL & Leases</a></li>
+                            <li><a href="#" onclick="showTheorySection('clustering', event)">Clustering</a></li>
+                        </ul>
+                    </div>
+                    <div style="flex: 1; padding: 40px;">
+                        <div id="intro" class="theory-section active">
+                            <h2>What is etcd?</h2>
+                            <p>etcd is a distributed, reliable key-value store for critical data in distributed systems.</p>
+                        </div>
+                        <div id="keyvalue" class="theory-section" style="display:none;">
+                            <h2>Key-Value Store Basics</h2>
+                            <p>etcd stores data as key-value pairs, supporting hierarchical keys and prefix queries.</p>
+                        </div>
+                        <div id="consistency" class="theory-section" style="display:none;">
+                            <h2>Consistency & CAP Theorem</h2>
+                            <p>etcd is CP (Consistency + Partition tolerance) in the CAP theorem.</p>
+                        </div>
+                        <div id="raft" class="theory-section" style="display:none;">
+                            <h2>Raft Consensus Algorithm</h2>
+                            <p>etcd uses Raft to ensure all nodes agree on the same data.</p>
+                        </div>
+                        <div id="operations" class="theory-section" style="display:none;">
+                            <h2>Core Operations</h2>
+                            <p>PUT, GET, DELETE, and more.</p>
+                        </div>
+                        <div id="watch" class="theory-section" style="display:none;">
+                            <h2>Watch & Notifications</h2>
+                            <p>Applications can subscribe to changes in etcd in real time.</p>
+                        </div>
+                        <div id="ttl" class="theory-section" style="display:none;">
+                            <h2>TTL & Leases</h2>
+                            <p>Keys can have a TTL and be attached to leases for automatic expiration.</p>
+                        </div>
+                        <div id="clustering" class="theory-section" style="display:none;">
+                            <h2>Clustering</h2>
+                            <p>etcd clusters provide high availability and fault tolerance.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="architecture" class="page">
+                <h2>Architecture Deep Dive</h2>
+                <div class="output-area">
+                    <h3>Interactive etcd Cluster Topology</h3>
+                    <svg class="diagram-svg" id="clusterDiagram" viewBox="0 0 600 300" style="width:100%;max-width:600px;height:300px;"></svg>
+                    <div style="margin-top:10px;">
+                        <button class="diagram-btn" id="showNormal">Normal Operation</button>
+                        <button class="diagram-btn" id="showFailure">Node Failure</button>
+                        <button class="diagram-btn" id="showElection">Leader Election</button>
+                        <button class="diagram-btn" id="showRecovery">Recovery</button>
+                    </div>
+                    <h3 style="margin-top:40px;">Data Flow Architecture</h3>
+                    <svg class="diagram-svg" id="dataFlowDiagram" viewBox="0 0 600 400" style="width:100%;max-width:600px;height:300px;"></svg>
+                    <div style="margin-top:10px;">
+                        <button class="diagram-btn" onclick="animateDataFlow('write')">Write Operation</button>
+                        <button class="diagram-btn" onclick="animateDataFlow('read')">Read Operation</button>
+                        <button class="diagram-btn" onclick="animateDataFlow('watch')">Watch Notification</button>
+                    </div>
+                </div>
+            </div>
+            <div id="usecases" class="page">
+                <h2>Real-world Use Cases</h2>
+                <div class="output-area">Use case scenarios and code examples go here.</div>
+            </div>
+            <div id="practice" class="page">
+                <h2>Practice Lab</h2>
+                <div style="margin-bottom:10px;">
+                    <input id="commandInput" type="text" placeholder="Type etcd command..." style="width:60%;padding:10px;font-size:1rem;">
+                    <button onclick="executeCommand()" style="padding:10px 20px;font-size:1rem;">Run</button>
+                </div>
+                <div class="output-area" id="output">Practice lab and etcd simulator will appear here.</div>
+                <div style="margin-top:20px;">
+                    <button onclick="setMode('practice')" id="practiceBtn" class="mode-btn active">Practice Mode</button>
+                    <button onclick="setMode('quiz')" id="quizBtn" class="mode-btn">Quiz Mode</button>
+                </div>
+                <div id="quizSection" style="display:none;margin-top:20px;">
+                    <div id="currentQuestion" style="font-weight:bold;"></div>
+                    <div id="questionText"></div>
+                    <div id="questionHint" style="display:none;color:#f39c12;"></div>
+                    <div style="margin-top:10px;">
+                        <button onclick="showHint()" class="hint-btn">Show Hint</button>
+                        <button onclick="checkAnswer()" class="check-btn">Check Answer</button>
+                        <button onclick="nextQuestion()" id="nextBtn" class="next-btn" style="display:none;">Next</button>
+                        <button onclick="skipQuestion()" class="skip-btn">Skip</button>
+                        <button onclick="resetQuiz()" class="reset-btn">Reset</button>
+                    </div>
+                    <div style="margin-top:10px;">Question <span id="questionNum">1</span> of <span id="totalQuestions">3</span></div>
+                </div>
+            </div>
+            <div id="advanced" class="page">
+                <h2>Advanced Topics</h2>
+                <div class="output-area">Security, performance, and operational best practices go here.</div>
+            </div>
+        </div>
+    </div>
+    <script>
+// --- Navigation between main pages ---
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    const pageEl = document.getElementById(pageId);
+    if (pageEl) pageEl.classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    const tabMap = {
+        'overview': 0,
+        'theory': 1,
+        'architecture': 2,
+        'usecases': 3,
+        'practice': 4,
+        'advanced': 5
+    };
+    const tabIndex = tabMap[pageId];
+    if (typeof tabIndex !== 'undefined') {
+        document.querySelectorAll('.nav-tab')[tabIndex].classList.add('active');
+    }
+}
+// --- Theory sidebar navigation ---
+function showTheorySection(sectionId, event) {
+    document.querySelectorAll('.theory-section').forEach(section => {
+        section.style.display = 'none';
+        section.classList.remove('active');
+    });
+    const sectionEl = document.getElementById(sectionId);
+    if (sectionEl) {
+        sectionEl.style.display = '';
+        sectionEl.classList.add('active');
+    }
+    document.querySelectorAll('.theory-nav a').forEach(link => {
+        link.classList.remove('active');
+    });
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
+}
+// --- Diagram interactivity ---
+function showClusterState(state) {
+    const svg = document.getElementById('clusterDiagram');
+    if (!svg) return;
+    svg.innerHTML = '';
+    if (state === 'normal') {
+        svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#2ecc71" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                        '<circle cx="300" cy="150" r="40" fill="#2ecc71" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                        '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+    } else if (state === 'failure') {
+        svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#e74c3c" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                        '<circle cx="300" cy="150" r="40" fill="#2ecc71" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                        '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+    } else if (state === 'election') {
+        svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#f39c12" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                        '<circle cx="300" cy="150" r="40" fill="#f39c12" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                        '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+    } else if (state === 'recovery') {
+        svg.innerHTML = '<circle cx="100" cy="150" r="40" fill="#2ecc71" /><text x="100" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 1</text>' +
+                        '<circle cx="300" cy="150" r="40" fill="#2ecc71" /><text x="300" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 2</text>' +
+                        '<circle cx="500" cy="150" r="40" fill="#2ecc71" /><text x="500" y="155" text-anchor="middle" fill="#fff" font-size="18">Node 3</text>';
+    }
+}
+function animateDataFlow(type) {
+    const svg = document.getElementById('dataFlowDiagram');
+    if (!svg) return;
+    svg.innerHTML = '';
+    if (type === 'write') {
+        svg.innerHTML = '<rect x="50" y="180" width="500" height="40" fill="#3498db" />' +
+                        '<text x="300" y="205" text-anchor="middle" fill="#fff" font-size="20">Write Path: Client → Leader → Followers</text>';
+    } else if (type === 'read') {
+        svg.innerHTML = '<rect x="50" y="80" width="500" height="40" fill="#2ecc71" />' +
+                        '<text x="300" y="105" text-anchor="middle" fill="#fff" font-size="20">Read Path: Client → Any Node</text>';
+    } else if (type === 'watch') {
+        svg.innerHTML = '<rect x="50" y="280" width="500" height="40" fill="#f39c12" />' +
+                        '<text x="300" y="305" text-anchor="middle" fill="#fff" font-size="20">Watch: Server → Client (Push)</text>';
+    }
+}
+// --- Practice Lab Simulator & Quiz Logic ---
+let etcdStore = new Map();
+let watchers = new Map();
+let leases = new Map();
+let currentMode = 'practice';
+let currentQuestionIndex = 0;
+let userSolutions = [];
+const questions = [
+    {
+        level: 'Beginner',
+        title: 'Store a value',
+        text: 'Store the value "MyApp" at the key /config/app/name.',
+        hint: 'Use: etcd put /config/app/name "MyApp"',
+        validation: (cmds, store) => store.get('/config/app/name') === 'MyApp'
+    },
+    {
+        level: 'Intermediate',
+        title: 'Retrieve a value',
+        text: 'Get the value for /config/app/name.',
+        hint: 'Use: etcd get /config/app/name',
+        validation: (cmds, store) => cmds.some(c => c.includes('get /config/app/name'))
+    },
+    {
+        level: 'Advanced',
+        title: 'Delete a value',
+        text: 'Delete the key /config/app/name.',
+        hint: 'Use: etcd del /config/app/name',
+        validation: (cmds, store) => !store.has('/config/app/name')
+    }
+];
+function addOutput(msg, cls) {
+    const output = document.getElementById('output');
+    if (!output) return;
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    span.textContent = msg + '\n';
+    output.appendChild(span);
+    output.scrollTop = output.scrollHeight;
+}
+function clearOutput() {
+    const output = document.getElementById('output');
+    if (output) output.innerHTML = '';
+}
+function updateStatus(msg, cls) {
+    // Optionally implement a status bar
+}
+function parseCommand(input) {
+    const parts = input.trim().split(/\s+/);
+    const command = parts[0];
+    const args = [];
+    const flags = {};
+    for (let i = 1; i < parts.length; i++) {
+        if (parts[i].startsWith('--')) {
+            const [flag, val] = parts[i].substring(2).split('=');
+            flags[flag] = val === undefined ? true : val;
+        } else {
+            args.push(parts[i]);
+        }
+    }
+    return { command, args, flags };
+}
+function executePut(args, flags) {
+    if (args.length < 2) throw new Error('PUT requires key and value');
+    const key = args[0];
+    const value = args.slice(1).join(' ').replace(/^"|"$/g, '');
+    etcdStore.set(key, value);
+    addOutput(`OK: Set ${key} = ${value}`, 'success');
+    triggerWatchers(key, 'PUT', value);
+    updateStatus('PUT success', 'success');
+}
+function executeGet(args, flags) {
+    if (args.length < 1) throw new Error('GET requires a key');
+    const key = args[0];
+    if (flags.prefix) {
+        let found = false;
+        for (let k of etcdStore.keys()) {
+            if (k.startsWith(key)) {
+                addOutput(`${k}: ${etcdStore.get(k)}`);
+                found = true;
+            }
+        }
+        if (!found) addOutput('No keys found with prefix.');
+    } else {
+        if (etcdStore.has(key)) {
+            addOutput(etcdStore.get(key));
+        } else {
+            addOutput('Key not found.');
+        }
+    }
+    updateStatus('GET complete', 'success');
+}
+function executeDel(args, flags) {
+    if (args.length < 1) throw new Error('DEL requires a key');
+    const key = args[0];
+    if (flags.prefix) {
+        let count = 0;
+        for (let k of Array.from(etcdStore.keys())) {
+            if (k.startsWith(key)) {
+                etcdStore.delete(k);
+                count++;
+            }
+        }
+        addOutput(`Deleted ${count} keys with prefix ${key}`);
+    } else {
+        if (etcdStore.delete(key)) {
+            addOutput(`Deleted ${key}`);
+        } else {
+            addOutput('Key not found.');
+        }
+    }
+    triggerWatchers(key, 'DEL', null);
+    updateStatus('DEL complete', 'success');
+}
+function executeWatch(args, flags) {
+    if (args.length < 1) throw new Error('WATCH requires a key');
+    const key = args[0];
+    const watchId = Math.random().toString(36).substr(2, 9);
+    if (!watchers.has(key)) watchers.set(key, []);
+    watchers.get(key).push({ id: watchId, prefix: flags.prefix || false });
+    addOutput(`Started watching: ${key}`, 'success');
+    if (flags.prefix) addOutput('Watching with prefix matching', 'success');
+    addOutput(`Watch ID: ${watchId}`);
+    addOutput('(Changes will appear here automatically)');
+    updateStatus('WATCH started', 'success');
+}
+function triggerWatchers(key, event, value) {
+    for (let [watchKey, watchList] of watchers) {
+        watchList.forEach(watcher => {
+            let shouldTrigger = false;
+            if (watcher.prefix && key.startsWith(watchKey)) shouldTrigger = true;
+            else if (!watcher.prefix && key === watchKey) shouldTrigger = true;
+            if (shouldTrigger) {
+                addOutput(`🔔 WATCH EVENT [${watcher.id}]`, 'warning');
+                addOutput(`Event: ${event}`);
+                addOutput(`Key: ${key}`);
+                if (value !== null) addOutput(`Value: ${value}`);
+                addOutput('---');
+            }
+        });
+    }
+}
+function executeCommand() {
+    const input = document.getElementById('commandInput');
+    if (!input) return;
+    const inputText = input.value.trim();
+    if (!inputText) return;
+    addOutput(`$ ${inputText}`);
+    if (currentMode === 'quiz' && currentQuestionIndex < questions.length) {
+        if (!userSolutions[currentQuestionIndex]) userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+        userSolutions[currentQuestionIndex].commands.push(inputText.toLowerCase());
+    }
+    input.value = '';
+    try {
+        const { command, args, flags } = parseCommand(inputText);
+        switch (command.toLowerCase()) {
+            case 'put': executePut(args, flags); break;
+            case 'get': executeGet(args, flags); break;
+            case 'del': case 'delete': executeDel(args, flags); break;
+            case 'watch': executeWatch(args, flags); break;
+            default: throw new Error(`Unknown command: ${command}`);
+        }
+    } catch (error) {
+        addOutput(`Error: ${error.message}`, 'error');
+        updateStatus('Command failed', 'error');
+    }
+    addOutput('');
+}
+// --- Quiz Functions ---
+function setMode(mode) {
+    currentMode = mode;
+    const practiceBtn = document.getElementById('practiceBtn');
+    const quizBtn = document.getElementById('quizBtn');
+    const quizSection = document.getElementById('quizSection');
+    if (practiceBtn) practiceBtn.classList.toggle('active', mode === 'practice');
+    if (quizBtn) quizBtn.classList.toggle('active', mode === 'quiz');
+    if (quizSection) quizSection.style.display = mode === 'quiz' ? 'block' : 'none';
+    if (mode === 'quiz') {
+        currentQuestionIndex = 0;
+        userSolutions = [];
+        loadCurrentQuestion();
+    }
+}
+function loadCurrentQuestion() {
+    if (currentQuestionIndex >= questions.length) { showCompletion(); return; }
+    const question = questions[currentQuestionIndex];
+    const currentQuestionEl = document.getElementById('currentQuestion');
+    const questionTextEl = document.getElementById('questionText');
+    const questionHintEl = document.getElementById('questionHint');
+    const questionNumEl = document.getElementById('questionNum');
+    const totalQuestionsEl = document.getElementById('totalQuestions');
+    const nextBtn = document.getElementById('nextBtn');
+    if (currentQuestionEl) currentQuestionEl.textContent = `${question.level}: ${question.title}`;
+    if (questionTextEl) questionTextEl.textContent = question.text;
+    if (questionHintEl) { questionHintEl.textContent = question.hint; questionHintEl.style.display = 'none'; }
+    if (questionNumEl) questionNumEl.textContent = currentQuestionIndex + 1;
+    if (totalQuestionsEl) totalQuestionsEl.textContent = questions.length;
+    if (nextBtn) nextBtn.style.display = 'none';
+    if (!userSolutions[currentQuestionIndex]) userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+    addOutput(`\n=== Question ${currentQuestionIndex + 1} of ${questions.length} ===`, 'success');
+    addOutput(`${question.level} Level: ${question.title}`, 'success');
+    addOutput(`${question.text}`, 'success');
+    addOutput('');
+}
+function showHint() {
+    const questionHint = document.getElementById('questionHint');
+    if (questionHint) questionHint.style.display = 'block';
+}
+function checkAnswer() {
+    const question = questions[currentQuestionIndex];
+    const solution = userSolutions[currentQuestionIndex];
+    if (!solution || solution.commands.length === 0) {
+        addOutput('❌ No commands executed yet! Try running some etcd commands first.', 'error');
+        return;
+    }
+    const isCorrect = question.validation(solution.commands, etcdStore);
+    if (isCorrect) {
+        addOutput('🎉 Excellent! You\'ve successfully completed this challenge!', 'success');
+        addOutput(`✅ Question ${currentQuestionIndex + 1}: ${question.title} - COMPLETED`, 'success');
+        solution.completed = true;
+        const nextBtn = document.getElementById('nextBtn');
+        if (nextBtn) nextBtn.style.display = 'inline-block';
+        updateStatus('Question completed!', 'success');
+        if (currentQuestionIndex < questions.length - 1) {
+            addOutput('✨ Great! Moving to the next question in 3 seconds...', 'success');
+            setTimeout(() => { nextQuestion(); }, 3000);
+        }
+    } else {
+        addOutput('❌ Not quite right. Check the hint and try again!', 'error');
+        addOutput('Make sure you\'re following all the requirements in the question.', 'warning');
+        updateStatus('Try again', 'error');
+    }
+}
+function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+        loadCurrentQuestion();
+        updateStatus(`Question ${currentQuestionIndex + 1} loaded`, 'success');
+    } else {
+        showCompletion();
+    }
+}
+function skipQuestion() {
+    addOutput(`⏭️ Skipping Question ${currentQuestionIndex + 1}`, 'warning');
+    userSolutions[currentQuestionIndex] = { commands: [], completed: false };
+    nextQuestion();
+}
+function resetQuiz() {
+    currentQuestionIndex = 0;
+    userSolutions = [];
+    etcdStore.clear();
+    watchers.clear();
+    leases.clear();
+    clearOutput();
+    addOutput('Quiz reset! Starting from Question 1...\n', 'warning');
+    loadCurrentQuestion();
+    updateStatus('Quiz reset', 'warning');
+}
+function showCompletion() {
+    const completedCount = userSolutions.filter(s => s && s.completed).length;
+    addOutput(`\n🎊 QUIZ COMPLETED! 🎊`, 'success');
+    addOutput(`You completed ${completedCount} out of ${questions.length} questions.`, 'success');
+    if (completedCount === questions.length) {
+        addOutput('🏆 Perfect score! You\'ve mastered etcd basics!', 'success');
+    } else if (completedCount >= questions.length * 0.7) {
+        addOutput('👍 Great job! You have a solid understanding of etcd.', 'success');
+    } else {
+        addOutput('📚 Good effort! Review the concepts and try again for better mastery.', 'warning');
+    }
+    addOutput('Feel free to continue practicing in Free Practice mode!', 'success');
+    updateStatus('Quiz completed!', 'success');
+}
+// --- Diagram and page event listeners ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Navigation tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const pageId = this.textContent.match(/([A-Za-z& ]+)/)[0].trim().toLowerCase();
+            const map = {
+                'course overview': 'overview',
+                'theory & concepts': 'theory',
+                'architecture': 'architecture',
+                'real-world use cases': 'usecases',
+                'practice lab': 'practice',
+                'advanced topics': 'advanced'
+            };
+            showPage(map[pageId]);
+        });
+    });
+    // Theory sidebar links
+    document.querySelectorAll('.theory-nav a').forEach(link => {
+        link.addEventListener('click', function(event) {
+            const sectionId = this.getAttribute('onclick').match(/'(.*?)'/)[1];
+            showTheorySection(sectionId, event);
+        });
+    });
+    // Diagram buttons
+    if (document.getElementById('showNormal')) document.getElementById('showNormal').addEventListener('click', function() { showClusterState('normal'); });
+    if (document.getElementById('showFailure')) document.getElementById('showFailure').addEventListener('click', function() { showClusterState('failure'); });
+    if (document.getElementById('showElection')) document.getElementById('showElection').addEventListener('click', function() { showClusterState('election'); });
+    if (document.getElementById('showRecovery')) document.getElementById('showRecovery').addEventListener('click', function() { showClusterState('recovery'); });
+    // Data flow diagram buttons
+    const dataFlowBtns = document.querySelectorAll('.diagram-container .diagram-btn');
+    if (dataFlowBtns.length > 0) {
+        dataFlowBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent.includes('Write')) animateDataFlow('write');
+                else if (this.textContent.includes('Read')) animateDataFlow('read');
+                else if (this.textContent.includes('Watch')) animateDataFlow('watch');
+            });
+        });
+    }
+    // Initialize diagrams on load
+    showClusterState('normal');
+    animateDataFlow('write');
+    // Practice Lab welcome message
+    const output = document.getElementById('output');
+    if (output) {
+        output.innerHTML = `Welcome to etcd Practice Lab! 🚀\n\nTry these commands to get started:\n• etcd put /config/app/name "MyApp"\n• etcd get /config/app/name\n• etcd get /config/ --prefix\n• etcd del /config/app/name\n\nCurrent etcd store is empty. Start adding some data!\n`;
+    }
+});
+    </script>
+</body>
+</html>
